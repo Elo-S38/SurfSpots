@@ -1,0 +1,28 @@
+{
+  "spots": [
+    {
+      "name": "Plage des Catalans",
+      "location": "Marseille",
+      "surfBreak": "Beach Break",
+      "image": "plage_catalans"
+    },
+    {
+      "name": "Dune du Pilat",
+      "location": "Arcachon",
+      "surfBreak": "Sand Break",
+      "image": "dune_pilat"
+    },
+    {
+      "name": "Mont Saint-Michel",
+      "location": "Normandie",
+      "surfBreak": "Tidal Break",
+      "image": "mont_saint_michel"
+    },
+    {
+      "name": "Biarritz",
+      "location": "Normandie",
+      "surfBreak": "Tidal Break",
+      "image": "mont_saint_michel"
+    }
+  ]
+}
