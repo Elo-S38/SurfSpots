@@ -23,6 +23,12 @@
       "location": "Normandie",
       "surfBreak": "Tidal Break",
       "image": "mont_saint_michel"
+    },
+    {
+      "name": "Hossegor",
+      "location": "Normandie",
+      "surfBreak": "Tidal Break",
+      "image": "mont_saint_michel"
     }
   ]
 }
