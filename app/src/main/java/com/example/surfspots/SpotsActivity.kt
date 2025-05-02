@@ -7,8 +7,8 @@ import android.widget.ListView
 import androidx.appcompat.app.AppCompatActivity
 import com.example.surfspots.R
 import com.example.surfspots.Spot
-
 import com.example.surfspots.lireJsonDepuisRaw
+import com.example.surfspots.SpotAdapter
 import org.json.JSONArray
 
 class SpotsActivity : AppCompatActivity() {
@@ -20,23 +20,30 @@ class SpotsActivity : AppCompatActivity() {
         buttonRetour.setOnClickListener { finish() }
 
         val listView: ListView = findViewById(R.id.listView)
-
         val spots = mutableListOf<Spot>()
 
-        // 📥 On charge le JSON depuis res/raw/spots.json
+        // 📥 Lecture du JSON
         val json = lireJsonDepuisRaw(this, R.raw.spots)
-        val spotsArray: JSONArray = json?.getJSONArray("spots") ?: JSONArray()
+        val spotsArray: JSONArray = json?.getJSONArray("records") ?: JSONArray()
 
         for (i in 0 until spotsArray.length()) {
-            val item = spotsArray.getJSONObject(i)
-            val name = item.getString("name")
-            val location = item.getString("location")
-            val surfBreak = item.getString("surfBreak")
+            val item = spotsArray.getJSONObject(i).getJSONObject("fields")
+            val name = item.getString("Destination")
+            val location = item.getString("Destination State/Country")
+            val surfBreak = item.getJSONArray("Surf Break").getString(0)
 
-            // 🖼️ On récupère l’image par son nom dans drawable
-            val imageResId = resources.getIdentifier(item.getString("image"), "drawable", packageName)
+            // 🖼️ Nom de l'image sans extension
+            val imageName = name
+                .lowercase()
+                .replace(" ", "_")
+                .replace("-", "_")
 
-            val spot = Spot(name, location, imageResId, surfBreak)
+            val imageResId = resources.getIdentifier(imageName, "drawable", packageName)
+
+            // 🔁 Si l'image est introuvable, utilise une image par défaut
+            val finalImageResId = if (imageResId != 0) imageResId else R.drawable.placeholder
+
+            val spot = Spot(name, location, finalImageResId, surfBreak)
             spots.add(spot)
         }
 
@@ -44,9 +51,8 @@ class SpotsActivity : AppCompatActivity() {
         listView.adapter = adapter
 
         listView.setOnItemClickListener { _, _, position, _ ->
-            val spot = spots[position]
             val intent = Intent(this, SpotDetailActivity::class.java)
-            intent.putExtra("spot", spot)
+            intent.putExtra("spot", spots[position])
             startActivity(intent)
         }
     }
