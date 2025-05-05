@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Le bloc <application> contient toutes les infos principales de l'app -->
     <application
 
         android:allowBackup="true"
@@ -20,6 +21,8 @@
         <activity
             android:name="com.example.surfspotsxml.MainActivity"
             android:exported="true">
+
+            <!-- Indique que cette activité est celle qui démarre l'application -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -27,7 +30,14 @@
             </intent-filter>
         </activity>
     </application>
+
+
+    <!-- Permission demandée pour pouvoir accéder à Internet -->
     <uses-permission android:name="android.permission.INTERNET" />
 
 
 </manifest>
+
+    <!-- L'activité qui contient MAIN + LAUNCHER est l'écran d'accueil de l'application.
+Les autres activités (SpotsActivity, SpotDetailActivity) sont appelées avec des intents.
+La permission INTERNET est nécessaire même si tu charges juste une image depuis une URL avec Glide. -->

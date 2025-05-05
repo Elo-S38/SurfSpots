@@ -1,38 +1,105 @@
-<?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="#F5F5F5">
 
     <LinearLayout
         android:orientation="vertical"
-        android:padding="16dp"
+        android:padding="20dp"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:background="#FFFFFF">
 
         <ImageView
             android:id="@+id/detailImage"
             android:layout_width="match_parent"
-            android:layout_height="200dp"
+            android:layout_height="220dp"
             android:scaleType="centerCrop"
-            android:layout_marginBottom="16dp" />
+            android:layout_marginBottom="20dp"
+            android:contentDescription="Image du spot" />
 
         <TextView
             android:id="@+id/detailName"
-            android:textSize="24sp"
+            android:fontFamily="@font/beaches"
+            android:textSize="48sp"
             android:textStyle="bold"
+            android:textColor="#000000"
+            android:layout_marginBottom="4dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
 
         <TextView
             android:id="@+id/detailLocation"
-            android:textSize="18sp"
+            android:textSize="16sp"
+            android:textColor="#888888"
+            android:layout_marginBottom="20dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
 
+        <!-- Bloc Type de vague -->
+        <TextView
+            android:text="Type de vague"
+            android:textStyle="bold"
+            android:fontFamily="@font/beaches"
+            android:textSize="18sp"
+            android:textColor="#555555"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
         <TextView
             android:id="@+id/detailSurfBreak"
             android:textSize="16sp"
-            android:layout_marginTop="8dp"
+            android:textColor="#000000"
+            android:layout_marginBottom="16dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <!-- Bloc Niveau -->
+        <TextView
+            android:text="Niveau"
+            android:fontFamily="@font/beaches"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#555555"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+        <TextView
+            android:id="@+id/detailDifficulty"
+            android:textSize="16sp"
+            android:textColor="#000000"
+            android:layout_marginBottom="16dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <!-- Bloc Saison -->
+        <TextView
+            android:text="Saison idéale"
+            android:fontFamily="@font/beaches"
+            android:textStyle="bold"
+            android:textSize="18sp"
+            android:textColor="#555555"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+        <TextView
+            android:id="@+id/detailSeason"
+            android:textSize="16sp"
+            android:textColor="#000000"
+            android:layout_marginBottom="16dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <!-- Bloc Adresse -->
+        <TextView
+            android:text="Adresse"
+            android:fontFamily="@font/beaches"
+            android:textSize="18sp"
+            android:textColor="#555555"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+        <TextView
+            android:id="@+id/detailAddress"
+            android:textSize="16sp"
+            android:textColor="#000000"
+            android:layout_marginBottom="20dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
 
@@ -40,7 +107,7 @@
             android:id="@+id/buttonRetourList"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:backgroundTint="@color/surf_blue"
             android:text="Retour à la liste de spots" />
     </LinearLayout>
-
 </ScrollView>

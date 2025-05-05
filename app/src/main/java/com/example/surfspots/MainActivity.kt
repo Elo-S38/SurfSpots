@@ -1,3 +1,8 @@
+// FICHIER : MainActivity.kt
+// ----------------------------
+// Ce fichier représente l'écran d’accueil de l’application SurfSpots.
+// Il affiche le logo, le titre, un bouton "Voir les spots" et lance une musique en fond.
+
 package com.example.surfspotsxml
 
 import android.content.Intent
@@ -15,16 +20,19 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // 🎵 Initialise la musique
+        // ✅ Initialise la musique uniquement une fois, quand l'activité démarre
         mediaPlayer = MediaPlayer.create(this, R.raw.surfmusic)
-        mediaPlayer.isLooping = true // la musique tourne en boucle
+        mediaPlayer.isLooping = true
         mediaPlayer.start()
 
         val button = findViewById<Button>(R.id.buttonVoirSpots)
+
         button.setOnClickListener {
-            // ⛔ Arrête la musique quand on quitte la page d’accueil
-            if (::mediaPlayer.isInitialized && mediaPlayer.isPlaying) {
-                mediaPlayer.stop()
+            // ✅ Stoppe et libère la musique AVANT de changer d’écran
+            if (::mediaPlayer.isInitialized) {
+                try {
+                    mediaPlayer.stop()
+                } catch (_: IllegalStateException) {}
                 mediaPlayer.release()
             }
 
@@ -35,16 +43,19 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        // Nettoyage final au cas où
-        if (::mediaPlayer.isInitialized && mediaPlayer.isPlaying) {
-            mediaPlayer.stop()
+        // 🧼 Sécurité : libération finale si activité détruite (ex: app fermée)
+        if (::mediaPlayer.isInitialized) {
+            try {
+                mediaPlayer.stop()
+            } catch (_: IllegalStateException) {}
             mediaPlayer.release()
         }
     }
-
-    // Cycle de vie : pour debug Logcat
-    override fun onStart() { super.onStart(); println("🟢 onStart appelé") }
-    override fun onResume() { super.onResume(); println("✅ onResume appelé") }
-    override fun onPause() { super.onPause(); println("⏸️ onPause appelé") }
-    override fun onStop() { super.onStop(); println("⏹️ onStop appelé") }
 }
+
+
+
+//Ce fichier affiche la page d’accueil.
+//Il joue de la musique en boucle (option sympa !).
+//Il arrête la musique quand l’utilisateur clique sur "Voir les spots".
+//Il ouvre SpotsActivity.kt via un Intent.
