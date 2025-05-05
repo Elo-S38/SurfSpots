@@ -15,25 +15,28 @@
         android:contentDescription="Logo de l'application SurfSpots"
         android:layout_marginBottom="16dp"
         android:scaleType="centerInside" />
+
     <TextView
         android:id="@+id/textTitle1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Bienvenue sur"
-        android:fontFamily="@font/pacifico"
+        android:fontFamily="@font/beaches"
         android:textSize="24sp"
-        android:padding="0dp" />
+        android:padding="8dp" />
 
     <TextView
         android:id="@+id/textTitle2"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="SurfSpots"
         android:fontFamily="@font/surfbars"
-        android:textSize="64sp"
+        android:textSize="56sp"
+        android:gravity="center_horizontal"
+        android:paddingEnd="16dp"
+        android:clipToPadding="false"
         android:layout_marginTop="4dp"
-        android:layout_marginBottom="64dp"
-        android:padding="0dp" />
+        android:layout_marginBottom="64dp" />
 
     <Button
         android:id="@+id/buttonVoirSpots"

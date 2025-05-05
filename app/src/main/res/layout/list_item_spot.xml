@@ -3,31 +3,42 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:padding="8dp">
+    android:background="@drawable/list_item_background"
+    android:padding="12dp"
+    android:layout_margin="8dp"
+    android:elevation="2dp">
 
     <ImageView
         android:id="@+id/imageView"
-        android:layout_width="64dp"
-        android:layout_height="64dp"
-        android:src="@drawable/ic_launcher_foreground"
-        android:layout_marginEnd="8dp" />
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:scaleType="centerCrop"
+        android:layout_marginEnd="12dp"
+        android:contentDescription="Image du spot" />
 
     <LinearLayout
-        android:layout_width="203dp"
-        android:layout_height="183dp"
-        android:orientation="vertical">
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_weight="1">
 
         <TextView
             android:id="@+id/textViewName"
+            android:fontFamily="@font/beaches"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Nom" />
+            android:text="Nom du spot"
+            android:textStyle="bold"
+            android:textSize="28sp"
+            android:textColor="#000000" />
 
         <TextView
             android:id="@+id/textViewLocation"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Lieu" />
+            android:text="Lieu"
+            android:textSize="14sp"
+            android:textColor="#666666"
+            android:layout_marginTop="4dp" />
     </LinearLayout>
 </LinearLayout>
-
