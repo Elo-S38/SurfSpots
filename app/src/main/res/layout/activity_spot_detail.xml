@@ -92,6 +92,7 @@
             android:text="Adresse"
             android:fontFamily="@font/beaches"
             android:textSize="18sp"
+            android:textStyle="bold"
             android:textColor="#555555"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
