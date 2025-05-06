@@ -8,7 +8,7 @@
     <!-- Textes des champs dans AjoutSpotActivity -->
     <string name="hint_name">Nom du spot</string>
     <string name="hint_location">Localisation</string>
-    <string name="hint_surfBreak">Surf Break</string>
+    <string name="hint_surfBreak">Selectionner un ou plusieurs Surf Break</string>
     <string name="hint_difficulty">Niveau de difficulté</string>
     <string name="hint_seasonStart">Saison début</string>
     <string name="hint_seasonEnd">Saison fin</string>
@@ -28,5 +28,12 @@
 
     <!-- Descriptions pour l'accessibilité -->
     <string name="desc_addButton">Ajouter un spot</string>
+
+    <!-- Titre de l'écran retour accueil -->
+    <string name="retour_accueil">Retour Accueil</string>
+
+    <!-- Descriptions pour l'accessibilité -->
+    <string name="desc_retourButton">Retour Accueil</string>
+
 
 </resources>
