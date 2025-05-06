@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -18,39 +17,87 @@
         android:layout_gravity="center"
         android:textColor="@color/surf_blue"/>
 
-    <!-- Champ pour la destination -->
+    <!-- Champ pour le nom du spot -->
     <EditText
         android:id="@+id/nameEditText"
         android:layout_width="match_parent"
         android:layout_height="48dp"
-        android:hint="Destination"
+        android:hint="@string/hint_name"
         android:padding="8dp"
-        android:layout_marginBottom="8dp"/>
+        android:layout_marginBottom="4dp"/>
 
     <!-- Champ pour la localisation -->
     <EditText
         android:id="@+id/locationEditText"
         android:layout_width="match_parent"
         android:layout_height="48dp"
-        android:hint="Localisation (pays, ville)"
+        android:hint="@string/hint_location"
         android:padding="8dp"
-        android:layout_marginBottom="8dp"/>
+        android:layout_marginBottom="16dp"/>
 
     <!-- Champ pour le surf break -->
-    <EditText
-        android:id="@+id/surfBreakEditText"
+    <TextView
+        android:id="@+id/surfBreakTextView"
         android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:hint="Surf Break (ex: Beach Break)"
+        android:layout_height="wrap_content"
+        android:hint="@string/hint_surfBreak"
         android:padding="8dp"
-        android:layout_marginBottom="8dp"/>
+        android:layout_marginBottom="2dp"
+        android:textSize="18sp"/>
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginBottom="8dp">
+
+        <!-- Première ligne avec 2 CheckBox -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <CheckBox
+                android:id="@+id/surfBreakOption1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Beach Break"/>
+
+            <CheckBox
+                android:id="@+id/surfBreakOption2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Reef"/>
+        </LinearLayout>
+
+        <!-- Deuxième ligne avec 2 CheckBox -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <CheckBox
+                android:id="@+id/surfBreakOption3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Point Break"/>
+
+            <CheckBox
+                android:id="@+id/surfBreakOption4"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Shore Break"/>
+        </LinearLayout>
+
+    </LinearLayout>
+
 
     <!-- Champ pour la difficulté -->
     <EditText
         android:id="@+id/difficultyEditText"
         android:layout_width="match_parent"
         android:layout_height="48dp"
-        android:hint="Niveau de difficulté (1-5)"
+        android:hint="@string/hint_difficulty"
         android:padding="8dp"
         android:layout_marginBottom="8dp"/>
 
@@ -59,44 +106,70 @@
         android:id="@+id/seasonStartEditText"
         android:layout_width="match_parent"
         android:layout_height="48dp"
-        android:hint="Début de la saison"
+        android:hint="@string/hint_seasonStart"
         android:padding="8dp"
-        android:layout_marginBottom="8dp"/>
+        android:layout_marginBottom="8dp"
+        android:focusable="false"
+        android:clickable="true"
+        android:inputType="none"
+        />
 
     <!-- Champ pour la fin de la saison -->
     <EditText
         android:id="@+id/seasonEndEditText"
         android:layout_width="match_parent"
         android:layout_height="48dp"
-        android:hint="Fin de la saison"
+        android:hint="@string/hint_seasonEnd"
         android:padding="8dp"
-        android:layout_marginBottom="8dp"/>
+        android:layout_marginBottom="8dp"
+        android:focusable="false"
+        android:clickable="true"
+        android:inputType="none"
+        />
 
-    <!-- Champ pour le lien Magic Seaweed -->
-    <EditText
-        android:id="@+id/magicSeaweedEditText"
-        android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:hint="Lien Magic Seaweed"
-        android:padding="8dp"
-        android:layout_marginBottom="8dp"/>
 
-    <!-- Champ pour l'URL de la photo -->
-    <EditText
-        android:id="@+id/photoUrlEditText"
-        android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:hint="URL de la photo"
-        android:padding="8dp"
-        android:layout_marginBottom="16dp"/>
-
-    <!-- Bouton pour soumettre le formulaire -->
+    <!-- Sélection d'image -->
     <Button
-        android:id="@+id/addButton"
+        android:id="@+id/selectImageButton"
         android:layout_width="match_parent"
         android:layout_height="48dp"
-        android:text="Ajouter Spot"
-        android:layout_marginBottom="16dp"
-        android:backgroundTint="@color/surf_blue"/>
+        android:text="Choisir une image"
+        android:layout_marginBottom="8dp"/>
+
+    <!-- ImageView pour afficher l'image sélectionnée -->
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="match_parent"
+        android:layout_height="150dp"
+        android:layout_marginBottom="48dp"
+        android:src="@drawable/placeholder"/>
+
+    <!-- LinearLayout pour aligner les deux boutons en bas -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="bottom"
+        android:weightSum="2">
+
+        <!-- Bouton pour ajouter le spot -->
+        <Button
+            android:id="@+id/addButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:backgroundTint="@color/surf_orange"
+            android:text="@string/ajouter_spot_button"
+            android:layout_marginBottom="4dp"/>
+
+        <!-- Bouton de retour à l'accueil -->
+        <Button
+            android:id="@+id/buttonRetourAccueil"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/retour_accueil"
+            android:layout_marginBottom="4dp"/>
+    </LinearLayout>
 
 </LinearLayout>

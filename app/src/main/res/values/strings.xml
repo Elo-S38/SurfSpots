@@ -9,7 +9,7 @@
     <string name="hint_name">Nom du spot</string>
     <string name="hint_location">Localisation</string>
     <string name="hint_surfBreak">Selectionner un ou plusieurs Surf Break</string>
-    <string name="hint_difficulty">Niveau de difficulté</string>
+    <string name="hint_difficulty">Niveau de difficulté /5</string>
     <string name="hint_seasonStart">Saison début</string>
     <string name="hint_seasonEnd">Saison fin</string>
     <string name="hint_address">Adresse du spot</string>
