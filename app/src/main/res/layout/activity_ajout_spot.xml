@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:scrollbars="vertical">
+
+    <!-- Titre de l'écran -->
+    <TextView
+        android:id="@+id/titleTextView"
+        android:text="Ajouter un Spot"
+        android:fontFamily="@font/beaches"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="36sp"
+        android:layout_marginBottom="16dp"
+        android:layout_gravity="center"
+        android:textColor="@color/surf_blue"/>
+
+    <!-- Champ pour la destination -->
+    <EditText
+        android:id="@+id/nameEditText"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:hint="Destination"
+        android:padding="8dp"
+        android:layout_marginBottom="8dp"/>
+
+    <!-- Champ pour la localisation -->
+    <EditText
+        android:id="@+id/locationEditText"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:hint="Localisation (pays, ville)"
+        android:padding="8dp"
+        android:layout_marginBottom="8dp"/>
+
+    <!-- Champ pour le surf break -->
+    <EditText
+        android:id="@+id/surfBreakEditText"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:hint="Surf Break (ex: Beach Break)"
+        android:padding="8dp"
+        android:layout_marginBottom="8dp"/>
+
+    <!-- Champ pour la difficulté -->
+    <EditText
+        android:id="@+id/difficultyEditText"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:hint="Niveau de difficulté (1-5)"
+        android:padding="8dp"
+        android:layout_marginBottom="8dp"/>
+
+    <!-- Champ pour le début de la saison -->
+    <EditText
+        android:id="@+id/seasonStartEditText"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:hint="Début de la saison"
+        android:padding="8dp"
+        android:layout_marginBottom="8dp"/>
+
+    <!-- Champ pour la fin de la saison -->
+    <EditText
+        android:id="@+id/seasonEndEditText"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:hint="Fin de la saison"
+        android:padding="8dp"
+        android:layout_marginBottom="8dp"/>
+
+    <!-- Champ pour le lien Magic Seaweed -->
+    <EditText
+        android:id="@+id/magicSeaweedEditText"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:hint="Lien Magic Seaweed"
+        android:padding="8dp"
+        android:layout_marginBottom="8dp"/>
+
+    <!-- Champ pour l'URL de la photo -->
+    <EditText
+        android:id="@+id/photoUrlEditText"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:hint="URL de la photo"
+        android:padding="8dp"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- Bouton pour soumettre le formulaire -->
+    <Button
+        android:id="@+id/addButton"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:text="Ajouter Spot"
+        android:layout_marginBottom="16dp"
+        android:backgroundTint="@color/surf_blue"/>
+
+</LinearLayout>

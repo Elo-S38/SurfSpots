@@ -36,7 +36,7 @@ class SpotsActivity : AppCompatActivity() {
         val queue = Volley.newRequestQueue(this)
 
         // URL de l'API Airtable
-        val url = "https://api.airtable.com/v0/appxT9ln6ixuCb3o1/Surf%20Destinations"
+        val url = "https://api.airtable.com/v0/appjGkyY19YTjz5DF/Surf%20Destinations"
 
         // Créer une requête GET avec Volley
         val jsonObjectRequest = object : JsonObjectRequest(

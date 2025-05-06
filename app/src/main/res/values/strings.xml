@@ -1,3 +1,39 @@
 <resources>
+    <!-- Nom de l'application -->
     <string name="app_name">SurfSpots</string>
+    <string name="api_url">https://api.airtable.com/v0/appxT9ln6ixuCb3o1/Surf%20Destinations</string>
+    <!-- Texte pour le bouton d'ajout du spot -->
+    <string name="ajouter_spot_button">Ajouter Spot</string>
+
+    <!-- Textes des champs dans AjoutSpotActivity -->
+    <string name="hint_name">Nom du spot</string>
+    <string name="hint_location">Localisation</string>
+    <string name="hint_surfBreak">Selectionner un ou plusieurs Surf Break</string>
+    <string name="hint_difficulty">Niveau de difficulté</string>
+    <string name="hint_seasonStart">Saison début</string>
+    <string name="hint_seasonEnd">Saison fin</string>
+    <string name="hint_address">Adresse du spot</string>
+
+    <!-- Descriptions pour l'accessibilité -->
+    <string name="desc_name">Nom du spot pour la saisie</string>
+    <string name="desc_location">Localisation du spot</string>
+    <string name="desc_surfBreak">Type de vague du spot</string>
+    <string name="desc_difficulty">Niveau de difficulté du spot</string>
+    <string name="desc_seasonStart">Début de la saison pour ce spot</string>
+    <string name="desc_seasonEnd">Fin de la saison pour ce spot</string>
+    <string name="desc_address">Adresse complète du spot</string>
+
+    <!-- Titre de l'écran d'ajout -->
+    <string name="ajouter_spot_title">Ajouter un Spot</string>
+
+    <!-- Descriptions pour l'accessibilité -->
+    <string name="desc_addButton">Ajouter un spot</string>
+
+    <!-- Titre de l'écran retour accueil -->
+    <string name="retour_accueil">Retour Accueil</string>
+
+    <!-- Descriptions pour l'accessibilité -->
+    <string name="desc_retourButton">Retour Accueil</string>
+
+
 </resources>

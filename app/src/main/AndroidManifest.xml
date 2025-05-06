@@ -2,9 +2,17 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Le bloc <application> contient toutes les infos principales de l'app -->
-    <application
+    <!-- Permission demandée pour pouvoir accéder à Internet -->
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
 
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.CAMERA"/>
+
+    <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -15,29 +23,23 @@
         android:theme="@style/Theme.SurfSpots"
         tools:targetApi="31">
 
-        <activity android:name="com.example.surfspotsxml.SpotDetailActivity" />
+        <!-- Déclaration de l'activité AjoutSpotActivity -->
+        <activity android:name="com.example.surfspotsxml.AjoutSpotActivity" android:exported="false" />
 
+        <activity android:name="com.example.surfspotsxml.SpotDetailActivity" />
         <activity android:name="com.example.surfspotsxml.SpotsActivity" />
+
         <activity
             android:name="com.example.surfspotsxml.MainActivity"
             android:exported="true">
-
             <!-- Indique que cette activité est celle qui démarre l'application -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+
     </application>
 
-
-    <!-- Permission demandée pour pouvoir accéder à Internet -->
-    <uses-permission android:name="android.permission.INTERNET" />
-
-
 </manifest>
-
-    <!-- L'activité qui contient MAIN + LAUNCHER est l'écran d'accueil de l'application.
-Les autres activités (SpotsActivity, SpotDetailActivity) sont appelées avec des intents.
-La permission INTERNET est nécessaire même si tu charges juste une image depuis une URL avec Glide. -->

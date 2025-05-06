@@ -1,8 +1,3 @@
-// FICHIER : MainActivity.kt
-// ----------------------------
-// Ce fichier représente l'écran d’accueil de l’application SurfSpots.
-// Il affiche le logo, le titre, un bouton "Voir les spots" et lance une musique en fond.
-
 package com.example.surfspotsxml
 
 import android.content.Intent
@@ -25,18 +20,25 @@ class MainActivity : AppCompatActivity() {
         mediaPlayer.isLooping = true
         mediaPlayer.start()
 
-        val button = findViewById<Button>(R.id.buttonVoirSpots)
-
-        button.setOnClickListener {
+        // Bouton "Voir les spots" - ouvre SpotsActivity
+        val buttonVoirSpots = findViewById<Button>(R.id.buttonVoirSpots)
+        buttonVoirSpots.setOnClickListener {
             // ✅ Stoppe et libère la musique AVANT de changer d’écran
-            if (::mediaPlayer.isInitialized) {
-                try {
-                    mediaPlayer.stop()
-                } catch (_: IllegalStateException) {}
-                mediaPlayer.release()
-            }
+            stopMusic()
 
+            // Ouvre SpotsActivity
             val intent = Intent(this, SpotsActivity::class.java)
+            startActivity(intent)
+        }
+
+        // Bouton "Ajouter un Spot" - ouvre AjoutSpotActivity
+        val buttonAjouterSpot = findViewById<Button>(R.id.buttonAjoutSpot)
+        buttonAjouterSpot.setOnClickListener {
+            // ✅ Stoppe et libère la musique AVANT de changer d’écran
+            stopMusic()
+
+            // Ouvre AjoutSpotActivity
+            val intent = Intent(this, AjoutSpotActivity::class.java)
             startActivity(intent)
         }
     }
@@ -44,6 +46,11 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         // 🧼 Sécurité : libération finale si activité détruite (ex: app fermée)
+        stopMusic()
+    }
+
+    // Fonction pour arrêter la musique proprement
+    private fun stopMusic() {
         if (::mediaPlayer.isInitialized) {
             try {
                 mediaPlayer.stop()
@@ -52,10 +59,3 @@ class MainActivity : AppCompatActivity() {
         }
     }
 }
-
-
-
-//Ce fichier affiche la page d’accueil.
-//Il joue de la musique en boucle (option sympa !).
-//Il arrête la musique quand l’utilisateur clique sur "Voir les spots".
-//Il ouvre SpotsActivity.kt via un Intent.
