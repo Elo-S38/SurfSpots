@@ -27,7 +27,7 @@ data class Spot( // pour stocker des données.
         parcel.readString() ?: ""       // adresse
     )
 
-//Convertit un Spot en Parcel pour transmission
+    //Convertit un Spot en Parcel pour transmission
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(name)
         parcel.writeString(location)

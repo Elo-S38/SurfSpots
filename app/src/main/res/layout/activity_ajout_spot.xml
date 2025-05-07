@@ -67,7 +67,7 @@
                 android:id="@+id/surfBreakOption2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Reef"/>
+                android:text="Reef Break"/>
         </LinearLayout>
 
         <!-- Deuxième ligne avec 2 CheckBox -->
@@ -86,7 +86,7 @@
                 android:id="@+id/surfBreakOption4"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Shore Break"/>
+                android:text="Outer Banks"/>
         </LinearLayout>
 
     </LinearLayout>
