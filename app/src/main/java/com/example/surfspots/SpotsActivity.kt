@@ -48,41 +48,43 @@ class SpotsActivity : AppCompatActivity() {
                 // Récupérer le tableau "records" de la réponse
                 val spotsArray: JSONArray = response.getJSONArray("records")
                 Log.d("Volley", "Nombre de spots récupérés : ${spotsArray.length()}")  // Log du nombre de spots récupérés
+                val startTime = System.currentTimeMillis()
+
 
                 // 🔁 Boucle sur chaque spot dans le JSON
                 for (i in 0 until spotsArray.length()) {
                     val item = spotsArray.getJSONObject(i).getJSONObject("fields")
 
-                    // On extrait les champs qu'on veut
-                    val name = item.getString("Destination")
-                    val location = item.getString("Destination State/Country")
-                    val surfBreak = item.getJSONArray("Surf Break").getString(0)
+                    val name = item.optString("Destination", "Inconnu")
+                    val location = item.optString("Destination State/Country", "Inconnu")
+
+                    val surfBreak = if (item.has("Surf Break")) {
+                        val surfArray = item.getJSONArray("Surf Break")
+                        if (surfArray.length() > 0) surfArray.getString(0) else "Non spécifié"
+                    } else {
+                        "Non spécifié"
+                    }
+                    val endTime = System.currentTimeMillis()
+                    Log.d("Perf", "Temps total parsing + chargement : ${endTime - startTime} ms")
+
                     val difficulty = item.optInt("Difficulty Level", 0)
                     val seasonStart = item.optString("Peak Surf Season Begins", "N/A")
                     val seasonEnd = item.optString("Peak Surf Season Ends", "N/A")
                     val address = item.optString("Address", "N/A")
 
-                    // 🖼️ On transforme le nom en nom d’image (ex : bali_beach)
-                    val imageName = name
-                        .lowercase()
+                    val imageName = name.lowercase()
                         .replace(" ", "_")
                         .replace("-", "_")
 
-                    // 🔍 On récupère l'identifiant de l'image dans drawable
                     val imageResId = resources.getIdentifier(imageName, "drawable", packageName)
-
-                    // 🛟 Si l’image n’est pas trouvée, on utilise une image par défaut
                     val finalImageResId = if (imageResId != 0) imageResId else R.drawable.placeholder
 
-                    // 📦 On crée un objet Spot avec les infos du JSON
                     val spot = Spot(name, location, finalImageResId, surfBreak, difficulty, seasonStart, seasonEnd, address)
-
-                    // ➕ On ajoute le Spot à la liste
                     spots.add(spot)
 
-                    // Log pour vérifier chaque spot ajouté
                     Log.d("Volley", "Spot ajouté : $name, $location")
                 }
+
 
                 // 📋 On crée un adapter pour afficher la liste dans la ListView
                 val adapter = SpotAdapter(this, spots)
@@ -106,7 +108,7 @@ class SpotsActivity : AppCompatActivity() {
             // Ajouter les headers pour l'authentification avec ton token Bearer
             override fun getHeaders(): Map<String, String> {
                 val headers = HashMap<String, String>()
-                headers["Authorization"] = "Bearer patWOrIcEukfsAxwi.56bcfa626a3ad0e0e6a4e8290d4f6f44c8a2e259e91bb93121a8c0197494b980"
+                headers["Authorization"] = "Bearer patl1Jtlrfu0kyTgA.35ff8d849025a763a04a5121e7b50d5ecb08245375b77186b3ba5fcfd1b02f05"
                 return headers
             }
         }
