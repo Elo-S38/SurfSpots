@@ -1,0 +1,15 @@
+# Assure que tous les fichiers texte utilisent LF dans le dépôt
+* text=auto eol=lf
+
+# Forcer les extensions connues à LF
+*.go text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.sh text eol=lf
+
+# Binaires ou fichiers à ne pas convertir
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.pdf binary
