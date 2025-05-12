@@ -6,19 +6,18 @@ import android.os.Parcelable
 data class Spot(
     val name: String,
     val location: String,
-    val imageResId: Int,           // Image drawable locale
-    val imageUrl: String? = null,  // Image Cloudinary (null si image en dur)
+    val imageUrlOrPath: String,     // ✅ Nouveau champ unifié
     val surfBreak: String,
     val difficulty: Int,
     val seasonStart: String,
     val seasonEnd: String,
     val address: String
 ) : Parcelable {
+
     constructor(parcel: Parcel) : this(
         parcel.readString() ?: "",
         parcel.readString() ?: "",
-        parcel.readInt(),
-        parcel.readString(), // imageUrl nullable
+        parcel.readString() ?: "",  // 🔄 lecture de imageUrlOrPath
         parcel.readString() ?: "",
         parcel.readInt(),
         parcel.readString() ?: "",
@@ -29,8 +28,7 @@ data class Spot(
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(name)
         parcel.writeString(location)
-        parcel.writeInt(imageResId)
-        parcel.writeString(imageUrl)
+        parcel.writeString(imageUrlOrPath) // 🔄 écriture de imageUrlOrPath
         parcel.writeString(surfBreak)
         parcel.writeInt(difficulty)
         parcel.writeString(seasonStart)

@@ -1,6 +1,8 @@
 package com.example.surfspotsxml
 
+import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
@@ -8,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.bumptech.glide.Glide
 import com.example.surfspots.R
 import com.example.surfspots.Spot
+import java.io.File
 
 class SpotDetailActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -28,14 +31,29 @@ class SpotDetailActivity : AppCompatActivity() {
             val seasonView = findViewById<TextView>(R.id.detailSeason)
             val addressView = findViewById<TextView>(R.id.detailAddress)
 
-            // Image Cloudinary si dispo, sinon image drawable
-            if (!spot.imageUrl.isNullOrEmpty()) {
-                Glide.with(this)
-                    .load(spot.imageUrl)
-                    .placeholder(R.drawable.placeholder)
-                    .into(imageView)
-            } else {
-                imageView.setImageResource(spot.imageResId)
+            val imagePath = spot.imageUrlOrPath
+            Log.d("DEBUG_IMAGE", "DetailActivity: ${spot.imageUrlOrPath}")
+            Log.d("DEBUG_IMAGE", "Exists = ${File(spot.imageUrlOrPath).exists()}")
+
+            when {
+                imagePath.startsWith("http") -> {
+                    Glide.with(this).load(imagePath)
+                        .placeholder(R.drawable.placeholder)
+                        .error(R.drawable.placeholder)
+                        .into(imageView)
+                }
+                File(imagePath).exists() -> {
+                    Glide.with(this).load(File(imagePath))
+                        .placeholder(R.drawable.placeholder)
+                        .error(R.drawable.placeholder)
+                        .into(imageView)
+                }
+                imagePath.startsWith("content://") -> {
+                    imageView.setImageURI(Uri.parse(imagePath))
+                }
+                else -> {
+                    imageView.setImageResource(R.drawable.placeholder)
+                }
             }
 
             nameView.text = spot.name

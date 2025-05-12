@@ -5,7 +5,6 @@ import android.app.Activity
 import android.app.DatePickerDialog
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -20,9 +19,9 @@ import com.android.volley.Response
 import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
 import com.example.surfspots.R
+import com.example.surfspots.Spot
 import org.json.JSONArray
 import org.json.JSONObject
-import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -42,34 +41,26 @@ class AjoutSpotActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_ajout_spot)
 
-        // 🔄 Forcer l'indexation des images manuelles dans /sdcard/Download
-        scanDownloadImages()
-
-        // Champs de saisie
         val editName = findViewById<EditText>(R.id.nameEditText)
         val editLocation = findViewById<EditText>(R.id.locationEditText)
         val editDifficulty = findViewById<EditText>(R.id.difficultyEditText)
         val editSeasonStart = findViewById<EditText>(R.id.seasonStartEditText)
         val editSeasonEnd = findViewById<EditText>(R.id.seasonEndEditText)
+        val urlEditText = findViewById<EditText>(R.id.imageUrlEditText)
 
-        // DatePicker
-        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
-        editSeasonStart.setOnClickListener {
-            showDatePicker { date -> editSeasonStart.setText(dateFormat.format(date)) }
-        }
-        editSeasonEnd.setOnClickListener {
-            showDatePicker { date -> editSeasonEnd.setText(dateFormat.format(date)) }
-        }
-
-        // Checkboxes
         val cb1 = findViewById<CheckBox>(R.id.surfBreakOption1)
         val cb2 = findViewById<CheckBox>(R.id.surfBreakOption2)
         val cb3 = findViewById<CheckBox>(R.id.surfBreakOption3)
         val cb4 = findViewById<CheckBox>(R.id.surfBreakOption4)
 
-        // Image
         imageView = findViewById(R.id.imageView)
         val selectImageButton = findViewById<Button>(R.id.selectImageButton)
+
+        // 🔄 Désactiver le bouton galerie si une URL est tapée
+        urlEditText.setOnFocusChangeListener { _, _ ->
+            selectImageButton.isEnabled = urlEditText.text.isBlank()
+        }
+
         selectImageButton.setOnClickListener {
             val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
                 Manifest.permission.READ_MEDIA_IMAGES
@@ -82,7 +73,6 @@ class AjoutSpotActivity : AppCompatActivity() {
             }
         }
 
-        // Ajout du spot
         val addButton = findViewById<Button>(R.id.addButton)
         addButton.setOnClickListener {
             val name = editName.text.toString()
@@ -90,6 +80,7 @@ class AjoutSpotActivity : AppCompatActivity() {
             val difficulty = editDifficulty.text.toString().toIntOrNull() ?: 1
             val seasonStart = editSeasonStart.text.toString()
             val seasonEnd = editSeasonEnd.text.toString()
+            val manualUrl = urlEditText.text.toString()
 
             val surfBreaks = mutableListOf<String>()
             if (cb1.isChecked) surfBreaks.add(cb1.text.toString())
@@ -97,41 +88,66 @@ class AjoutSpotActivity : AppCompatActivity() {
             if (cb3.isChecked) surfBreaks.add(cb3.text.toString())
             if (cb4.isChecked) surfBreaks.add(cb4.text.toString())
 
-            if (selectedImageUri != null) {
+            // 🟢 1. URL manuelle prioritaire
+            if (manualUrl.isNotBlank()) {
+                val spot = Spot(
+                    name = name,
+                    location = location,
+                    imageUrlOrPath = manualUrl,
+                    surfBreak = surfBreaks.joinToString(", "),
+                    difficulty = difficulty,
+                    seasonStart = seasonStart,
+                    seasonEnd = seasonEnd,
+                    address = location
+                )
+                sendSpotToAirtable(spot)
+            }
+            // 🟡 2. Galerie si pas d’URL
+            else if (selectedImageUri != null) {
                 uploadToCloudinary(selectedImageUri!!) { imageUrl ->
                     if (imageUrl != null) {
-                        sendSpotToAirtable(name, location, surfBreaks, difficulty, seasonStart, seasonEnd, imageUrl)
+                        val spot = Spot(
+                            name = name,
+                            location = location,
+                            imageUrlOrPath = imageUrl,
+                            surfBreak = surfBreaks.joinToString(", "),
+                            difficulty = difficulty,
+                            seasonStart = seasonStart,
+                            seasonEnd = seasonEnd,
+                            address = location
+                        )
+                        sendSpotToAirtable(spot)
                     } else {
                         Toast.makeText(this, "Erreur d'upload de l'image", Toast.LENGTH_SHORT).show()
                     }
                 }
-            } else {
-                sendSpotToAirtable(name, location, surfBreaks, difficulty, seasonStart, seasonEnd, null)
+            }
+            // 🔴 Aucun visuel
+            else {
+                Toast.makeText(this, "Ajoutez une image : galerie ou URL", Toast.LENGTH_SHORT).show()
             }
         }
 
-        // Retour
         val buttonRetourAccueil = findViewById<Button>(R.id.buttonRetourAccueil)
         buttonRetourAccueil.setOnClickListener { finish() }
+
+        editSeasonStart.setOnClickListener { showDatePicker { editSeasonStart.setText(formatDate(it)) } }
+        editSeasonEnd.setOnClickListener { showDatePicker { editSeasonEnd.setText(formatDate(it)) } }
     }
 
     private fun openGallery() {
-        Log.d("AjoutSpot", "openGallery called")
         val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
         pickImageLauncher.launch(intent)
     }
 
+    private fun formatDate(date: Date): String {
+        return SimpleDateFormat("yyyy-MM-dd", Locale.US).format(date)
+    }
+
     private fun showDatePicker(onDateSelected: (Date) -> Unit) {
         val calendar = Calendar.getInstance()
-        DatePickerDialog(
-            this,
-            { _, year, month, dayOfMonth ->
-                calendar.set(year, month, dayOfMonth)
-                onDateSelected(calendar.time)
-            },
-            calendar.get(Calendar.YEAR),
-            calendar.get(Calendar.MONTH),
-            calendar.get(Calendar.DAY_OF_MONTH)
+        DatePickerDialog(this, { _, y, m, d -> calendar.set(y, m, d); onDateSelected(calendar.time) },
+            calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)
         ).show()
     }
 
@@ -153,9 +169,7 @@ class AjoutSpotActivity : AppCompatActivity() {
             }
         ) {
             override fun getByteData(): Map<String, DataPart> {
-                val data = HashMap<String, DataPart>()
-                data["file"] = DataPart("image.jpg", imageBytes)
-                return data
+                return mapOf("file" to DataPart("image.jpg", imageBytes))
             }
 
             override fun getParams(): Map<String, String> {
@@ -166,38 +180,25 @@ class AjoutSpotActivity : AppCompatActivity() {
         Volley.newRequestQueue(this).add(request)
     }
 
-    private fun sendSpotToAirtable(
-        name: String,
-        location: String,
-        surfBreaks: List<String>,
-        difficulty: Int,
-        seasonStart: String,
-        seasonEnd: String,
-        imageUrl: String?
-    ) {
+    private fun sendSpotToAirtable(spot: Spot) {
         val fields = JSONObject().apply {
-            put("Destination", name)
-            put("Destination State/Country", location)
-            put("Surf Break", JSONArray(surfBreaks))
-            put("Difficulty Level", difficulty)
-            put("Peak Surf Season Begins", seasonStart)
-            put("Peak Surf Season Ends", seasonEnd)
+            put("Destination", spot.name)
+            put("Destination State/Country", spot.location)
+            put("Surf Break", JSONArray(spot.surfBreak.split(", ")))
+            put("Difficulty Level", spot.difficulty)
+            put("Peak Surf Season Begins", spot.seasonStart)
+            put("Peak Surf Season Ends", spot.seasonEnd)
 
-            if (imageUrl != null) {
-                val photoArray = JSONArray()
-                photoArray.put(JSONObject().put("url", imageUrl))
-                put("Photos", photoArray)
-            }
+            val photoArray = JSONArray()
+            photoArray.put(JSONObject().put("url", spot.imageUrlOrPath))
+            put("Photos", photoArray)
         }
 
         val body = JSONObject().put("fields", fields)
         val url = "https://api.airtable.com/v0/appjGkyY19YTjz5DF/Surf%20Destinations"
 
         val request = object : JsonObjectRequest(Request.Method.POST, url, body,
-            { response ->
-                Toast.makeText(this, "Spot ajouté avec succès !", Toast.LENGTH_SHORT).show()
-                finish()
-            },
+            { Toast.makeText(this, "Spot ajouté avec succès !", Toast.LENGTH_SHORT).show(); finish() },
             { error ->
                 val err = error.networkResponse?.data?.let { String(it) }
                 Log.e("POST", "Erreur Airtable : $err")
@@ -213,25 +214,5 @@ class AjoutSpotActivity : AppCompatActivity() {
         }
 
         Volley.newRequestQueue(this).add(request)
-    }
-
-    // 🔍 Fonction pour forcer l'indexation des images dans /sdcard/Download
-    private fun scanDownloadImages() {
-        val downloadDir = File("/sdcard/Download")
-        if (downloadDir.exists() && downloadDir.isDirectory) {
-            val imageFiles = downloadDir.listFiles { file ->
-                file.extension.lowercase() in listOf("jpg", "jpeg", "png", "webp")
-            } ?: return
-
-            for (file in imageFiles) {
-                MediaScannerConnection.scanFile(
-                    this,
-                    arrayOf(file.absolutePath),
-                    null
-                ) { _, uri -> Log.d("SCAN", "Image indexée : $uri") }
-            }
-        } else {
-            Log.e("SCAN", "Le dossier /sdcard/Download n'existe pas")
-        }
     }
 }

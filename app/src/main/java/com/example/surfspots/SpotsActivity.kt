@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Button
 import android.widget.ListView
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.android.volley.Request
 import com.android.volley.toolbox.JsonObjectRequest
@@ -15,6 +16,11 @@ import com.example.surfspots.SpotAdapter
 import org.json.JSONArray
 
 class SpotsActivity : AppCompatActivity() {
+
+    private val spots = mutableListOf<Spot>()
+    private lateinit var listView: ListView
+    private lateinit var adapter: SpotAdapter
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_spots)
@@ -22,49 +28,69 @@ class SpotsActivity : AppCompatActivity() {
         val buttonRetour = findViewById<Button>(R.id.buttonRetourAccueil)
         buttonRetour.setOnClickListener { finish() }
 
-        val listView: ListView = findViewById(R.id.listView)
-        val spots = mutableListOf<Spot>()
-        val queue = Volley.newRequestQueue(this)
+        listView = findViewById(R.id.listView)
+        adapter = SpotAdapter(this, spots)
+        listView.adapter = adapter
 
+        listView.setOnItemClickListener { _, _, position, _ ->
+            val intent = Intent(this, SpotDetailActivity::class.java)
+            intent.putExtra("spot", spots[position])
+            startActivity(intent)
+        }
+
+        // 👉 Lance AjoutSpotActivity et récupère le résultat
+        val launcher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == RESULT_OK) {
+                val newSpot = result.data?.getParcelableExtra<Spot>("newSpot")
+                if (newSpot != null) {
+                    spots.add(newSpot)
+                    adapter.notifyDataSetChanged()
+                }
+            }
+        }
+
+
+
+        // 🔁 Récupération des spots distants
+        fetchSpotsFromAirtable()
+    }
+
+    private fun fetchSpotsFromAirtable() {
+        val queue = Volley.newRequestQueue(this)
         val url = "https://api.airtable.com/v0/appjGkyY19YTjz5DF/Surf%20Destinations"
 
-        val jsonObjectRequest = object : JsonObjectRequest(
+        val request = object : JsonObjectRequest(
             Request.Method.GET, url, null,
             { response ->
-                val spotsArray: JSONArray = response.getJSONArray("records")
-                Log.d("Volley", "Nombre de spots récupérés : ${spotsArray.length()}")
+                val records = response.getJSONArray("records")
+                for (i in 0 until records.length()) {
+                    val fields = records.getJSONObject(i).getJSONObject("fields")
 
-                for (i in 0 until spotsArray.length()) {
-                    val item = spotsArray.getJSONObject(i).getJSONObject("fields")
+                    val name = fields.optString("Destination", "Inconnu")
+                    val location = fields.optString("Destination State/Country", "Inconnu")
+                    val surfBreak = fields.optJSONArray("Surf Break")?.optString(0) ?: "Non spécifié"
+                    val difficulty = fields.optInt("Difficulty Level", 0)
+                    val seasonStart = fields.optString("Peak Surf Season Begins", "N/A")
+                    val seasonEnd = fields.optString("Peak Surf Season Ends", "N/A")
+                    val address = fields.optString("Address", location)
 
-                    val name = item.optString("Destination", "Inconnu")
-                    val location = item.optString("Destination State/Country", "Inconnu")
-                    val surfBreak = item.optJSONArray("Surf Break")?.optString(0) ?: "Non spécifié"
-                    val difficulty = item.optInt("Difficulty Level", 0)
-                    val seasonStart = item.optString("Peak Surf Season Begins", "N/A")
-                    val seasonEnd = item.optString("Peak Surf Season Ends", "N/A")
-                    val address = item.optString("Address", "N/A")
-
-                    // 🔍 Image depuis Cloudinary (nouveaux spots)
-                    val photoArray = item.optJSONArray("Photos")
-                    val imageUrl = if (photoArray != null && photoArray.length() > 0) {
-                        photoArray.getJSONObject(0).optString("url", null)
-                    } else null
-
-                    // 🖼️ Image locale pour anciens spots
-                    val imageName = name.lowercase().replace(" ", "_").replace("-", "_")
-                    val imageResId = if (imageUrl == null) {
-                        val resId = resources.getIdentifier(imageName, "drawable", packageName)
-                        if (resId != 0) resId else R.drawable.placeholder
+                    val photoArray = fields.optJSONArray("Photos")
+                    val imageUrlOrPath = if (photoArray != null && photoArray.length() > 0) {
+                        photoArray.getJSONObject(0).optString("url", "")
                     } else {
-                        R.drawable.placeholder // utilisé seulement comme placeholder dans Glide
+                        // Tentative de chargement d’image locale
+                        val imageName = name.lowercase().replace(" ", "_").replace("-", "_")
+                        val resId = resources.getIdentifier(imageName, "drawable", packageName)
+                        if (resId != 0)
+                            "android.resource://$packageName/drawable/$imageName"
+                        else
+                            ""
                     }
 
                     val spot = Spot(
                         name = name,
                         location = location,
-                        imageResId = imageResId,
-                        imageUrl = imageUrl,
+                        imageUrlOrPath = imageUrlOrPath,
                         surfBreak = surfBreak,
                         difficulty = difficulty,
                         seasonStart = seasonStart,
@@ -75,17 +101,10 @@ class SpotsActivity : AppCompatActivity() {
                     spots.add(spot)
                 }
 
-                val adapter = SpotAdapter(this, spots)
-                listView.adapter = adapter
-
-                listView.setOnItemClickListener { _, _, position, _ ->
-                    val intent = Intent(this, SpotDetailActivity::class.java)
-                    intent.putExtra("spot", spots[position])
-                    startActivity(intent)
-                }
+                adapter.notifyDataSetChanged()
             },
             { error ->
-                Log.e("Volley", "Erreur : $error")
+                Log.e("Volley", "Erreur : ${error.message}")
             }
         ) {
             override fun getHeaders(): Map<String, String> {
@@ -95,6 +114,6 @@ class SpotsActivity : AppCompatActivity() {
             }
         }
 
-        queue.add(jsonObjectRequest)
+        queue.add(request)
     }
 }
