@@ -56,7 +56,6 @@ class AjoutSpotActivity : AppCompatActivity() {
         imageView = findViewById(R.id.imageView)
         val selectImageButton = findViewById<Button>(R.id.selectImageButton)
 
-        // 🔄 Désactiver le bouton galerie si une URL est tapée
         urlEditText.setOnFocusChangeListener { _, _ ->
             selectImageButton.isEnabled = urlEditText.text.isBlank()
         }
@@ -88,9 +87,9 @@ class AjoutSpotActivity : AppCompatActivity() {
             if (cb3.isChecked) surfBreaks.add(cb3.text.toString())
             if (cb4.isChecked) surfBreaks.add(cb4.text.toString())
 
-            // 🟢 1. URL manuelle prioritaire
             if (manualUrl.isNotBlank()) {
                 val spot = Spot(
+                    id = 0,
                     name = name,
                     location = location,
                     imageUrlOrPath = manualUrl,
@@ -101,12 +100,11 @@ class AjoutSpotActivity : AppCompatActivity() {
                     address = location
                 )
                 sendSpotToAirtable(spot)
-            }
-            // 🟡 2. Galerie si pas d’URL
-            else if (selectedImageUri != null) {
+            } else if (selectedImageUri != null) {
                 uploadToCloudinary(selectedImageUri!!) { imageUrl ->
                     if (imageUrl != null) {
                         val spot = Spot(
+                            id = 0,
                             name = name,
                             location = location,
                             imageUrlOrPath = imageUrl,
@@ -121,9 +119,7 @@ class AjoutSpotActivity : AppCompatActivity() {
                         Toast.makeText(this, "Erreur d'upload de l'image", Toast.LENGTH_SHORT).show()
                     }
                 }
-            }
-            // 🔴 Aucun visuel
-            else {
+            } else {
                 Toast.makeText(this, "Ajoutez une image : galerie ou URL", Toast.LENGTH_SHORT).show()
             }
         }
