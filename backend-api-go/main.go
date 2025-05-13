@@ -1,49 +1,53 @@
 package main
 
 import (
-	"encoding/json"
-	"log"
-	"net/http"
-	"os"
-	"github.com/gorilla/mux"
+    "encoding/json"
+    "log"
+    "net/http"
+
+    "github.com/gorilla/mux"
 )
 
-// Structure de la réponse (on garde tout brut pour l'étape 1)
-type AirtableResponse struct {
-	Records []map[string]interface{} `json:"records"`
+// 🎯 Struct qui décrit un spot à renvoyer à l'application mobile
+type Spot struct {
+		Name       string `json:"name"` // Nom du spot
+    SurfBreak string `json:"surfBreak"` // Type de vague (ex: Beach Break)
+    Photo     string `json:"photo"`     // URL de l'image ou nom de fichier local
+    Address   string `json:"address"`   // Localisation du spot
+}
+
+// 💾 Données simulées en mémoire (pas de base de données pour l’instant)
+var spots = []Spot{
+    {		
+				Name:      "Lacanau",
+        SurfBreak: "Beach Break",
+        Photo:     "https://example.com/photos/lacanau.jpg",
+        Address:   "Lacanau, Gironde",
+    },
+    {
+				Name:      "Hossegor",
+        SurfBreak: "Point Break",
+        Photo:     "https://example.com/photos/hossegor.jpg",
+        Address:   "Hossegor, Landes",
+    },
+    {
+				Name:      "Biarritz",
+        SurfBreak: "Reef Break",
+        Photo:     "https://example.com/photos/biarritz.jpg",
+        Address:   "Biarritz, Pays basque",
+    },
+}
+
+// 🌐 Route GET /api/spots
+func GetSpots(w http.ResponseWriter, r *http.Request) {
+    w.Header().Set("Content-Type", "application/json") // Réponse en JSON
+    json.NewEncoder(w).Encode(spots) // On renvoie la liste simulée
 }
 
 func main() {
-	r := mux.NewRouter()
+    r := mux.NewRouter()                           // 🧭 Initialisation du routeur
+    r.HandleFunc("/api/spots", GetSpots).Methods("GET") // Définition de la route GET
 
-	// Route GET /api/spots
-	r.HandleFunc("/api/spots", getSpots).Methods("GET")
-
-	log.Println("✅ Serveur lancé sur http://localhost:8080")
-	err := http.ListenAndServe(":8080", r)
-	if err != nil {
-		log.Fatalf("❌ Erreur serveur : %v", err)
-	}
-}
-
-func getSpots(w http.ResponseWriter, r *http.Request) {
-	// 🔍 Ouvre le fichier JSON dans le dossier data/
-	file, err := os.ReadFile("data/spots.json")
-	if err != nil {
-		log.Printf("❌ Erreur d'ouverture : %v", err)
-		http.Error(w, "Erreur d'ouverture du fichier JSON", http.StatusInternalServerError)
-		return
-	}
-
-	var result AirtableResponse
-	err = json.Unmarshal(file, &result)
-	if err != nil {
-		log.Printf("❌ Erreur de parsing JSON : %v", err)
-		http.Error(w, "Format JSON invalide", http.StatusInternalServerError)
-		return
-	}
-
-	// ✅ Réponse en JSON
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(result.Records)
+    log.Println("Serveur en écoute sur http://localhost:8080")
+    log.Fatal(http.ListenAndServe(":8080", r))     // 🚀 Lancement du serveur web
 }
