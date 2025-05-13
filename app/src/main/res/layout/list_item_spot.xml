@@ -8,14 +8,17 @@
     android:layout_margin="8dp"
     android:elevation="2dp">
 
+    <!-- Image -->
     <ImageView
         android:id="@+id/imageView"
         android:layout_width="80dp"
         android:layout_height="80dp"
         android:scaleType="centerCrop"
         android:layout_marginEnd="12dp"
+        android:src="@drawable/placeholder"
         android:contentDescription="Image du spot" />
 
+    <!-- Texte -->
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -29,7 +32,7 @@
             android:layout_height="wrap_content"
             android:text="Nom du spot"
             android:textStyle="bold"
-            android:textSize="28sp"
+            android:textSize="24sp"
             android:textColor="#000000" />
 
         <TextView

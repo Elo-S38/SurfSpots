@@ -15,9 +15,11 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import com.android.volley.Request
+import com.android.volley.Response
 import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
 import com.example.surfspots.R
+import com.example.surfspots.Spot
 import org.json.JSONArray
 import org.json.JSONObject
 import java.text.SimpleDateFormat
@@ -26,7 +28,6 @@ import java.util.*
 class AjoutSpotActivity : AppCompatActivity() {
 
     private lateinit var imageView: ImageView
-    private lateinit var photoUrlEditText: EditText  // à créer dans le layout si utilisé en POST
     private var selectedImageUri: Uri? = null
 
     private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -40,48 +41,38 @@ class AjoutSpotActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_ajout_spot)
 
-        // Champs de saisie
         val editName = findViewById<EditText>(R.id.nameEditText)
         val editLocation = findViewById<EditText>(R.id.locationEditText)
         val editDifficulty = findViewById<EditText>(R.id.difficultyEditText)
         val editSeasonStart = findViewById<EditText>(R.id.seasonStartEditText)
         val editSeasonEnd = findViewById<EditText>(R.id.seasonEndEditText)
+        val urlEditText = findViewById<EditText>(R.id.imageUrlEditText)
 
-        // DatePicker
-        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
-
-        editSeasonStart.setOnClickListener {
-            showDatePicker { date ->
-                editSeasonStart.setText(dateFormat.format(date))
-            }
-        }
-
-        editSeasonEnd.setOnClickListener {
-            showDatePicker { date ->
-                editSeasonEnd.setText(dateFormat.format(date))
-            }
-        }
-
-        // Checkboxes
         val cb1 = findViewById<CheckBox>(R.id.surfBreakOption1)
         val cb2 = findViewById<CheckBox>(R.id.surfBreakOption2)
         val cb3 = findViewById<CheckBox>(R.id.surfBreakOption3)
         val cb4 = findViewById<CheckBox>(R.id.surfBreakOption4)
 
-        // Image
         imageView = findViewById(R.id.imageView)
         val selectImageButton = findViewById<Button>(R.id.selectImageButton)
+
+        // 🔄 Désactiver le bouton galerie si une URL est tapée
+        urlEditText.setOnFocusChangeListener { _, _ ->
+            selectImageButton.isEnabled = urlEditText.text.isBlank()
+        }
+
         selectImageButton.setOnClickListener {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
-                ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
-            ) {
-                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), 100)
+            val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+                Manifest.permission.READ_MEDIA_IMAGES
+            else Manifest.permission.READ_EXTERNAL_STORAGE
+
+            if (ActivityCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, arrayOf(permission), 100)
             } else {
                 openGallery()
             }
         }
 
-        // Ajout du spot (POST)
         val addButton = findViewById<Button>(R.id.addButton)
         addButton.setOnClickListener {
             val name = editName.text.toString()
@@ -89,6 +80,7 @@ class AjoutSpotActivity : AppCompatActivity() {
             val difficulty = editDifficulty.text.toString().toIntOrNull() ?: 1
             val seasonStart = editSeasonStart.text.toString()
             val seasonEnd = editSeasonEnd.text.toString()
+            val manualUrl = urlEditText.text.toString()
 
             val surfBreaks = mutableListOf<String>()
             if (cb1.isChecked) surfBreaks.add(cb1.text.toString())
@@ -96,45 +88,51 @@ class AjoutSpotActivity : AppCompatActivity() {
             if (cb3.isChecked) surfBreaks.add(cb3.text.toString())
             if (cb4.isChecked) surfBreaks.add(cb4.text.toString())
 
-            // Construction de l'objet JSON
-            val fields = JSONObject().apply {
-                put("Destination", name)
-                put("Destination State/Country", location)
-                put("Surf Break", JSONArray(surfBreaks))
-                put("Difficulty Level", difficulty)
-                put("Peak Surf Season Begins", seasonStart)
-                put("Peak Surf Season Ends", seasonEnd)
+            // 🟢 1. URL manuelle prioritaire
+            if (manualUrl.isNotBlank()) {
+                val spot = Spot(
+                    name = name,
+                    location = location,
+                    imageUrlOrPath = manualUrl,
+                    surfBreak = surfBreaks.joinToString(", "),
+                    difficulty = difficulty,
+                    seasonStart = seasonStart,
+                    seasonEnd = seasonEnd,
+                    address = location
+                )
+                sendSpotToAirtable(spot)
             }
-
-            val body = JSONObject().put("fields", fields)
-            val url = "https://api.airtable.com/v0/appjGkyY19YTjz5DF/Surf%20Destinations"
-            val queue = Volley.newRequestQueue(this)
-
-            val request = object : JsonObjectRequest(Request.Method.POST, url, body,
-                { response ->
-                    Toast.makeText(this, "Spot ajouté !", Toast.LENGTH_SHORT).show()
-                    finish()
-                },
-                { error ->
-                    Toast.makeText(this, "Erreur lors de l'ajout", Toast.LENGTH_SHORT).show()
-                    val errorMsg = error.networkResponse?.data?.let { String(it, Charsets.UTF_8) }
-                    Log.e("POST", "Erreur détaillée : $errorMsg")
-                }
-            ) {
-                override fun getHeaders(): Map<String, String> {
-                    val headers = HashMap<String, String>()
-                    headers["Authorization"] = "Bearer patl1Jtlrfu0kyTgA.35ff8d849025a763a04a5121e7b50d5ecb08245375b77186b3ba5fcfd1b02f05"
-                    headers["Content-Type"] = "application/json"
-                    return headers
+            // 🟡 2. Galerie si pas d’URL
+            else if (selectedImageUri != null) {
+                uploadToCloudinary(selectedImageUri!!) { imageUrl ->
+                    if (imageUrl != null) {
+                        val spot = Spot(
+                            name = name,
+                            location = location,
+                            imageUrlOrPath = imageUrl,
+                            surfBreak = surfBreaks.joinToString(", "),
+                            difficulty = difficulty,
+                            seasonStart = seasonStart,
+                            seasonEnd = seasonEnd,
+                            address = location
+                        )
+                        sendSpotToAirtable(spot)
+                    } else {
+                        Toast.makeText(this, "Erreur d'upload de l'image", Toast.LENGTH_SHORT).show()
+                    }
                 }
             }
-
-            queue.add(request)
+            // 🔴 Aucun visuel
+            else {
+                Toast.makeText(this, "Ajoutez une image : galerie ou URL", Toast.LENGTH_SHORT).show()
+            }
         }
 
-        // Retour
         val buttonRetourAccueil = findViewById<Button>(R.id.buttonRetourAccueil)
         buttonRetourAccueil.setOnClickListener { finish() }
+
+        editSeasonStart.setOnClickListener { showDatePicker { editSeasonStart.setText(formatDate(it)) } }
+        editSeasonEnd.setOnClickListener { showDatePicker { editSeasonEnd.setText(formatDate(it)) } }
     }
 
     private fun openGallery() {
@@ -142,17 +140,79 @@ class AjoutSpotActivity : AppCompatActivity() {
         pickImageLauncher.launch(intent)
     }
 
+    private fun formatDate(date: Date): String {
+        return SimpleDateFormat("yyyy-MM-dd", Locale.US).format(date)
+    }
+
     private fun showDatePicker(onDateSelected: (Date) -> Unit) {
         val calendar = Calendar.getInstance()
-        DatePickerDialog(
-            this,
-            { _, year, month, dayOfMonth ->
-                calendar.set(year, month, dayOfMonth)
-                onDateSelected(calendar.time)
-            },
-            calendar.get(Calendar.YEAR),
-            calendar.get(Calendar.MONTH),
-            calendar.get(Calendar.DAY_OF_MONTH)
+        DatePickerDialog(this, { _, y, m, d -> calendar.set(y, m, d); onDateSelected(calendar.time) },
+            calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)
         ).show()
+    }
+
+    private fun uploadToCloudinary(imageUri: Uri, onResult: (String?) -> Unit) {
+        val inputStream = contentResolver.openInputStream(imageUri) ?: return onResult(null)
+        val imageBytes = inputStream.readBytes()
+        inputStream.close()
+
+        val url = "https://api.cloudinary.com/v1_1/dsrlf52bb/image/upload"
+        val request = object : VolleyMultipartRequest(Request.Method.POST, url,
+            Response.Listener { response ->
+                val json = JSONObject(String(response.data))
+                val imageUrl = json.getString("secure_url")
+                onResult(imageUrl)
+            },
+            Response.ErrorListener {
+                Log.e("Cloudinary", "Erreur : $it")
+                onResult(null)
+            }
+        ) {
+            override fun getByteData(): Map<String, DataPart> {
+                return mapOf("file" to DataPart("image.jpg", imageBytes))
+            }
+
+            override fun getParams(): Map<String, String> {
+                return mapOf("upload_preset" to "unsigned_preset")
+            }
+        }
+
+        Volley.newRequestQueue(this).add(request)
+    }
+
+    private fun sendSpotToAirtable(spot: Spot) {
+        val fields = JSONObject().apply {
+            put("Destination", spot.name)
+            put("Destination State/Country", spot.location)
+            put("Surf Break", JSONArray(spot.surfBreak.split(", ")))
+            put("Difficulty Level", spot.difficulty)
+            put("Peak Surf Season Begins", spot.seasonStart)
+            put("Peak Surf Season Ends", spot.seasonEnd)
+
+            val photoArray = JSONArray()
+            photoArray.put(JSONObject().put("url", spot.imageUrlOrPath))
+            put("Photos", photoArray)
+        }
+
+        val body = JSONObject().put("fields", fields)
+        val url = "https://api.airtable.com/v0/appjGkyY19YTjz5DF/Surf%20Destinations"
+
+        val request = object : JsonObjectRequest(Request.Method.POST, url, body,
+            { Toast.makeText(this, "Spot ajouté avec succès !", Toast.LENGTH_SHORT).show(); finish() },
+            { error ->
+                val err = error.networkResponse?.data?.let { String(it) }
+                Log.e("POST", "Erreur Airtable : $err")
+                Toast.makeText(this, "Erreur Airtable", Toast.LENGTH_SHORT).show()
+            }
+        ) {
+            override fun getHeaders(): Map<String, String> {
+                return mapOf(
+                    "Authorization" to "Bearer patl1Jtlrfu0kyTgA.35ff8d849025a763a04a5121e7b50d5ecb08245375b77186b3ba5fcfd1b02f05",
+                    "Content-Type" to "application/json"
+                )
+            }
+        }
+
+        Volley.newRequestQueue(this).add(request)
     }
 }

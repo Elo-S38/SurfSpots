@@ -9,14 +9,16 @@
         android:id="@+id/listView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1" />
+        android:layout_weight="1"
+        android:divider="@android:color/darker_gray"
+        android:dividerHeight="1dp" />
 
     <Button
         android:id="@+id/buttonRetourAccueil"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
         android:backgroundTint="@color/surf_blue"
-        android:text="Retour à l'accueil" />
-
+        android:text="Retour à l'accueil"
+        android:textColor="@android:color/white" />
 </LinearLayout>
-
