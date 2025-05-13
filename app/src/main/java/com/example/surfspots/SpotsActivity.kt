@@ -37,7 +37,8 @@ class SpotsActivity : AppCompatActivity() {
         // 📲 Ouvre les détails du spot au clic
         listView.setOnItemClickListener { _, _, position, _ ->
             val intent = Intent(this, SpotDetailActivity::class.java)
-            intent.putExtra("spot", spots[position])
+            intent.putExtra("spot_id", spots[position].id)
+
             startActivity(intent)
         }
 
@@ -67,7 +68,9 @@ class SpotsActivity : AppCompatActivity() {
                     val address = item.optString("address", "Adresse inconnue")
 
                     // 🔁 Création de l’objet Spot (adapté à la structure Kotlin)
+                    val id = item.getInt("id") // ou optInt("id", -1)
                     val spot = Spot(
+                        id = id, // ✅ bon ID depuis le JSON
                         name = name,
                         location = address,
                         imageUrlOrPath = photo,

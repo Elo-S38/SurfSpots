@@ -4,9 +4,10 @@ import android.os.Parcel
 import android.os.Parcelable
 
 data class Spot(
+    val id: Int,
     val name: String,
     val location: String,
-    val imageUrlOrPath: String,     // ✅ Nouveau champ unifié
+    val imageUrlOrPath: String,
     val surfBreak: String,
     val difficulty: Int,
     val seasonStart: String,
@@ -14,21 +15,24 @@ data class Spot(
     val address: String
 ) : Parcelable {
 
+    // 🔧 Constructeur secondaire pour reconstituer l’objet depuis un Parcel
     constructor(parcel: Parcel) : this(
-        parcel.readString() ?: "",
-        parcel.readString() ?: "",
-        parcel.readString() ?: "",  // 🔄 lecture de imageUrlOrPath
-        parcel.readString() ?: "",
-        parcel.readInt(),
-        parcel.readString() ?: "",
-        parcel.readString() ?: "",
-        parcel.readString() ?: ""
+        parcel.readInt(),                          // id
+        parcel.readString() ?: "",                // name
+        parcel.readString() ?: "",                // location
+        parcel.readString() ?: "",                // imageUrlOrPath
+        parcel.readString() ?: "",                // surfBreak
+        parcel.readInt(),                         // difficulty
+        parcel.readString() ?: "",                // seasonStart
+        parcel.readString() ?: "",                // seasonEnd
+        parcel.readString() ?: ""                 // address
     )
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
+        parcel.writeInt(id)
         parcel.writeString(name)
         parcel.writeString(location)
-        parcel.writeString(imageUrlOrPath) // 🔄 écriture de imageUrlOrPath
+        parcel.writeString(imageUrlOrPath)
         parcel.writeString(surfBreak)
         parcel.writeInt(difficulty)
         parcel.writeString(seasonStart)
