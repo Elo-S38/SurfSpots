@@ -1,27 +1,27 @@
-package main
+package main // 📦 Point d'entrée principal du programme
 
 import (
-	"encoding/json" // 📦 Pour convertir des objets Go en JSON
-	"log"           // 📝 Pour écrire dans la console
-	"net/http"      // 🌐 Pour créer le serveur web
-	"strconv"       // 🔢 Pour convertir des strings en int
-	"github.com/gorilla/mux" // 🐵 Pour gérer les routes dynamiques comme /spots/{id}
+	"encoding/json"       // 📦 Pour encoder/décoder les données en JSON
+	"log"                 // 📝 Pour afficher des messages dans le terminal
+	"net/http"            // 🌐 Pour gérer les requêtes et les réponses HTTP
+	"strconv"             // 🔢 Pour convertir des chaînes de caractères en entiers
+	"github.com/gorilla/mux" // 🐵 Librairie externe pour gérer les routes dynamiques (ex: /spots/{id})
 )
 
-// 🎯 Structure d’un Spot (envoyé à l’application mobile)
+// 🎯 Définition de la structure de données envoyée à l’application mobile
 type DataSpot struct {
-	ID           int    `json:"id"`
-	Name         string `json:"name"`
-	SurfBreak    string `json:"surfBreak"`
-	Photo        string `json:"photo"`
-	Address      string `json:"address"`
-	Difficulty   int    `json:"difficulty"`
-	SeasonStart  string `json:"seasonStart"`
-	SeasonEnd    string `json:"seasonEnd"`
-	Rating       int    `json:"rating"` // ✅ Ajout du champ modifiable
+	ID           int    `json:"id"`           // ID unique du spot
+	Name         string `json:"name"`         // Nom du spot
+	SurfBreak    string `json:"surfBreak"`    // Type de vague
+	Photo        string `json:"photo"`        // URL de l'image
+	Address      string `json:"address"`      // Adresse ou lieu
+	Difficulty   int    `json:"difficulty"`   // Niveau de difficulté (1 à 5)
+	SeasonStart  string `json:"seasonStart"`  // Début de la meilleure période
+	SeasonEnd    string `json:"seasonEnd"`    // Fin de la meilleure période
+	Rating       int    `json:"rating"`       // Note du spot (modifiable via PUT)
 }
 
-// 💾 Simili base de données (en mémoire)
+// 💾 Liste simulée de spots de surf (équivalent d’une base de données en mémoire)
 var dataspots = []DataSpot{
 	{
 		ID:          1,
@@ -58,72 +58,74 @@ var dataspots = []DataSpot{
 	},
 }
 
-// 🌐 GET /api/spots → Liste des spots
+// 🌐 Route GET /api/spots → Liste tous les spots
 func GetSpots(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(dataspots)
+	w.Header().Set("Content-Type", "application/json")   // 🏷 Spécifie que la réponse est en JSON
+	json.NewEncoder(w).Encode(dataspots)                 // 📤 Encode la liste en JSON et l’envoie
 }
 
-// 🌐 GET /api/spots/{id} → Détail d’un spot
+// 🌐 Route GET /api/spots/{id} → Détail d’un spot spécifique
 func GetSpotByID(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	idParam := vars["id"]
-	id, err := strconv.Atoi(idParam)
+	vars := mux.Vars(r)                    // 🔍 Récupère les variables de l’URL
+	idParam := vars["id"]                  // 🧾 Extrait la valeur de l’ID (en string)
+	id, err := strconv.Atoi(idParam)      // 🔄 Convertit la string en entier
 	if err != nil {
-		http.Error(w, "ID invalide", http.StatusBadRequest)
+		http.Error(w, "ID invalide", http.StatusBadRequest) // ❌ Si erreur de conversion → 400
 		return
 	}
 
-	for _, spot := range dataspots {
-		if spot.ID == id {
+	for _, spot := range dataspots {      // 🔁 Parcourt chaque spot de la liste
+		if spot.ID == id {                // ✅ Si l’ID correspond
 			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(spot)
+			json.NewEncoder(w).Encode(spot) // 📤 Envoie le spot correspondant
 			return
 		}
 	}
 
-	http.Error(w, "Spot non trouvé", http.StatusNotFound)
+	http.Error(w, "Spot non trouvé", http.StatusNotFound) // ❌ Aucun spot trouvé → 404
 }
 
-// 🌐 PUT /api/spots/{id} → Met à jour la note d’un spot
+// 🌐 Route PUT /api/spots/{id} → Met à jour la note (rating) d’un spot
 func UpdateSpotRating(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
+	vars := mux.Vars(r)                         // 🔍 Récupère les variables de l’URL
 	idParam := vars["id"]
-	id, err := strconv.Atoi(idParam)
+	id, err := strconv.Atoi(idParam)           // 🔄 Convertit l’ID en entier
 	if err != nil {
-		http.Error(w, "ID invalide", http.StatusBadRequest)
+		http.Error(w, "ID invalide", http.StatusBadRequest) // ❌ ID non numérique
 		return
 	}
 
+	// 📥 Structure temporaire pour recevoir la nouvelle note
 	var payload struct {
-		Rating int `json:"rating"`
+		Rating int `json:"rating"`              // Le champ attendu dans le JSON reçu
 	}
-	err = json.NewDecoder(r.Body).Decode(&payload)
+	err = json.NewDecoder(r.Body).Decode(&payload) // 📩 Decode le corps JSON reçu
 	if err != nil {
-		http.Error(w, "Corps JSON invalide", http.StatusBadRequest)
+		http.Error(w, "Corps JSON invalide", http.StatusBadRequest) // ❌ JSON mal formé
 		return
 	}
 
-	for i, spot := range dataspots {
+	for i, spot := range dataspots {              // 🔁 Recherche du spot à mettre à jour
 		if spot.ID == id {
-			dataspots[i].Rating = payload.Rating
+			dataspots[i].Rating = payload.Rating  // ✅ Met à jour la note
 			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(dataspots[i])
+			json.NewEncoder(w).Encode(dataspots[i]) // 📤 Renvoie le spot mis à jour
 			return
 		}
 	}
 
-	http.Error(w, "Spot non trouvé", http.StatusNotFound)
+	http.Error(w, "Spot non trouvé", http.StatusNotFound) // ❌ ID inexistant → 404
 }
 
-// 🚀 main → Lance le serveur et configure les routes
+// 🚀 Fonction principale : démarre le serveur et configure les routes
 func main() {
-	r := mux.NewRouter()
+	r := mux.NewRouter() // 🧭 Initialise le routeur Gorilla Mux
 
-	r.HandleFunc("/api/spots", GetSpots).Methods("GET")
-	r.HandleFunc("/api/spots/{id}", GetSpotByID).Methods("GET")
-	r.HandleFunc("/api/spots/{id}", UpdateSpotRating).Methods("PUT")
+	// 🔗 Déclare les routes disponibles et leurs méthodes HTTP
+	r.HandleFunc("/api/spots", GetSpots).Methods("GET")               // 🔍 Tous les spots
+	r.HandleFunc("/api/spots/{id}", GetSpotByID).Methods("GET")       // 🔍 Spot par ID
+	r.HandleFunc("/api/spots/{id}", UpdateSpotRating).Methods("PUT")  // ✏️ Modifier une note
 
-	log.Println("Serveur en écoute sur http://localhost:8080")
-	log.Fatal(http.ListenAndServe(":8080", r))
+	log.Println("Serveur en écoute sur http://localhost:8080")        // 🟢 Message de démarrage
+	log.Fatal(http.ListenAndServe(":8080", r))                        // 🚀 Lance le serveur
 }

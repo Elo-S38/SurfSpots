@@ -12,20 +12,21 @@ data class Spot(
     val difficulty: Int,
     val seasonStart: String,
     val seasonEnd: String,
-    val address: String
+    val address: String,
+    val rating: Int // ✅ Nouveau champ ajouté
 ) : Parcelable {
 
-    // 🔧 Constructeur secondaire pour reconstituer l’objet depuis un Parcel
     constructor(parcel: Parcel) : this(
-        parcel.readInt(),                          // id
-        parcel.readString() ?: "",                // name
-        parcel.readString() ?: "",                // location
-        parcel.readString() ?: "",                // imageUrlOrPath
-        parcel.readString() ?: "",                // surfBreak
-        parcel.readInt(),                         // difficulty
-        parcel.readString() ?: "",                // seasonStart
-        parcel.readString() ?: "",                // seasonEnd
-        parcel.readString() ?: ""                 // address
+        parcel.readInt(),                     // id
+        parcel.readString() ?: "",            // name
+        parcel.readString() ?: "",            // location
+        parcel.readString() ?: "",            // imageUrlOrPath
+        parcel.readString() ?: "",            // surfBreak
+        parcel.readInt(),                     // difficulty
+        parcel.readString() ?: "",            // seasonStart
+        parcel.readString() ?: "",            // seasonEnd
+        parcel.readString() ?: "",            // address
+        parcel.readInt()                      // ✅ lecture de rating
     )
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
@@ -38,6 +39,7 @@ data class Spot(
         parcel.writeString(seasonStart)
         parcel.writeString(seasonEnd)
         parcel.writeString(address)
+        parcel.writeInt(rating) // ✅ écriture de rating
     }
 
     override fun describeContents(): Int = 0

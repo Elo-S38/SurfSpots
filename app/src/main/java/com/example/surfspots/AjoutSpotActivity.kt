@@ -97,7 +97,8 @@ class AjoutSpotActivity : AppCompatActivity() {
                     difficulty = difficulty,
                     seasonStart = seasonStart,
                     seasonEnd = seasonEnd,
-                    address = location
+                    address = location,
+                    rating = 0
                 )
                 sendSpotToAirtable(spot)
             } else if (selectedImageUri != null) {
@@ -112,7 +113,8 @@ class AjoutSpotActivity : AppCompatActivity() {
                             difficulty = difficulty,
                             seasonStart = seasonStart,
                             seasonEnd = seasonEnd,
-                            address = location
+                            address = location,
+                            rating = 0
                         )
                         sendSpotToAirtable(spot)
                     } else {

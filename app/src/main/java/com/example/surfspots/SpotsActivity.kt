@@ -78,7 +78,8 @@ class SpotsActivity : AppCompatActivity() {
                         difficulty = 0,
                         seasonStart = "N/A",
                         seasonEnd = "N/A",
-                        address = address
+                        address = address,
+                        rating = 0
                     )
 
                     spots.add(spot)
