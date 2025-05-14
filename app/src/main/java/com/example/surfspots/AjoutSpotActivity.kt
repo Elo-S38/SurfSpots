@@ -196,6 +196,7 @@ class AjoutSpotActivity : AppCompatActivity() {
             put("rating", spot.rating)
         }
 
+
         val url = "http://10.0.2.2:8080/api/spots"
 
         val request = JsonObjectRequest(
@@ -210,7 +211,18 @@ class AjoutSpotActivity : AppCompatActivity() {
                 Log.e("POST", "Erreur Go API : ${error.message}")
                 Toast.makeText(this@AjoutSpotActivity, "❌ Erreur Go API", Toast.LENGTH_SHORT).show()
             }
+
+        ) {
+            override fun getHeaders(): Map<String, String> {
+                return mapOf(
+//                    
+                    "Content-Type" to "application/json"
+                )
+            }
+        }
+
         )
+
 
         Volley.newRequestQueue(this).add(request)
     }
