@@ -86,7 +86,7 @@ class AjoutSpotActivity : AppCompatActivity() {
             }
         }
 
-        // ➕ Bouton pour valider l’ajout d’un spot
+        // ➕ Bouton pour valider l'ajout d'un spot
         val addButton = findViewById<Button>(R.id.addButton)
         addButton.setOnClickListener {
             // 🧾 Récupérer les données saisies
@@ -103,12 +103,12 @@ class AjoutSpotActivity : AppCompatActivity() {
             if (cb3.isChecked) surfBreaks.add(cb3.text.toString())
             if (cb4.isChecked) surfBreaks.add(cb4.text.toString())
 
-            // 🟢 Cas 1 : une URL est fournie → on l’utilise telle quelle
+            // 🟢 Cas 1 : une URL est fournie → on l'utilise telle quelle
             if (manualUrl.isNotBlank()) {
                 val spot = Spot(0, name, location, manualUrl, surfBreaks.joinToString(", "), difficulty, seasonStart, seasonEnd, location, 0)
                 sendSpotToGoApi(spot)
             }
-            // 🟡 Cas 2 : une image de la galerie est sélectionnée → on l’envoie à Cloudinary
+            // 🟡 Cas 2 : une image de la galerie est sélectionnée → on l'envoie à Cloudinary
             else if (selectedImageUri != null) {
                 uploadToCloudinary(selectedImageUri!!) { imageUrl ->
                     val finalUrl = imageUrl ?: ""
@@ -116,14 +116,14 @@ class AjoutSpotActivity : AppCompatActivity() {
                     sendSpotToGoApi(spot)
                 }
             }
-            // 🔵 Cas 3 : pas d’image → on envoie quand même un spot sans image
+            // 🔵 Cas 3 : pas d'image → on envoie quand même un spot sans image
             else {
                 val spot = Spot(0, name, location, "", surfBreaks.joinToString(", "), difficulty, seasonStart, seasonEnd, location, 0)
                 sendSpotToGoApi(spot)
             }
         }
 
-        // 🔙 Bouton retour à l’accueil
+        // 🔙 Bouton retour à l'accueil
         val buttonRetourAccueil = findViewById<Button>(R.id.buttonRetourAccueil)
         buttonRetourAccueil.setOnClickListener { finish() }
 
@@ -151,7 +151,7 @@ class AjoutSpotActivity : AppCompatActivity() {
         ).show()
     }
 
-    // ☁️ Uploader une image vers Cloudinary et récupérer l’URL
+    // ☁️ Uploader une image vers Cloudinary et récupérer l'URL
     private fun uploadToCloudinary(imageUri: Uri, onResult: (String?) -> Unit) {
         val inputStream = contentResolver.openInputStream(imageUri) ?: return onResult(null)
         val imageBytes = inputStream.readBytes()
