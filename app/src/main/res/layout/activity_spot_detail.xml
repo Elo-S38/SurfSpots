@@ -104,6 +104,32 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
 
+        <TextView
+            android:id="@+id/detailRating"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Note :"
+            android:textSize="16sp"
+            android:layout_marginTop="12dp" />
+
+        <EditText
+            android:id="@+id/editRating"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Entrez une note entre 0 et 5"
+            android:inputType="number"
+            android:layout_marginTop="8dp" />
+
+        <Button
+            android:id="@+id/buttonEnvoyerNote"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Noter le spot"
+            android:backgroundTint="@color/surf_orange"
+            android:layout_marginTop="8dp" />
+
+
+
         <Button
             android:id="@+id/buttonRetourList"
             android:layout_width="wrap_content"
