@@ -193,7 +193,7 @@ class AjoutSpotActivity : AppCompatActivity() {
         }
 
         val body = JSONObject().put("fields", fields)
-        val url = "https://api.airtable.com/v0/appjGkyY19YTjz5DF/Surf%20Destinations"
+        val url = "http://10.0.2.2:8080/api/spots"
 
         val request = object : JsonObjectRequest(Request.Method.POST, url, body,
             { Toast.makeText(this, "Spot ajouté avec succès !", Toast.LENGTH_SHORT).show(); finish() },
@@ -205,7 +205,7 @@ class AjoutSpotActivity : AppCompatActivity() {
         ) {
             override fun getHeaders(): Map<String, String> {
                 return mapOf(
-                    "Authorization" to "Bearer patl1Jtlrfu0kyTgA.35ff8d849025a763a04a5121e7b50d5ecb08245375b77186b3ba5fcfd1b02f05",
+//                    "Authorization" to "Bearer patl1Jtlrfu0kyTgA.35ff8d849025a763a04a5121e7b50d5ecb08245375b77186b3ba5fcfd1b02f05",
                     "Content-Type" to "application/json"
                 )
             }
