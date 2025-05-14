@@ -6,6 +6,7 @@ import (
 	"net/http"            // 🌐 Pour gérer les requêtes et les réponses HTTP
 	"strconv"             // 🔢 Pour convertir des chaînes de caractères en entiers
 	"github.com/gorilla/mux" // 🐵 Librairie externe pour gérer les routes dynamiques (ex: /spots/{id})
+
 )
 
 // 🎯 Définition de la structure de données envoyée à l’application mobile
@@ -26,7 +27,7 @@ var dataspots = []DataSpot{
 	{
 		ID:          1,
 		Name:        "Lacanau",
-		SurfBreak:   "Beach Break",
+		SurfBreak:   "Point Break",
 		Photo:       "https://example.com/photos/lacanau.jpg",
 		Address:     "Gironde",
 		Difficulty:  3,
@@ -117,6 +118,29 @@ func UpdateSpotRating(w http.ResponseWriter, r *http.Request) {
 	http.Error(w, "Spot non trouvé", http.StatusNotFound) // ❌ ID inexistant → 404
 }
 
+// 🌐 POST /api/spots → Ajoute un nouveau spot à la liste
+func CreateSpot(w http.ResponseWriter, r *http.Request) {
+	var newSpot DataSpot
+
+	// 📥 Decode le JSON reçu depuis le body
+	err := json.NewDecoder(r.Body).Decode(&newSpot)
+	if err != nil {
+		http.Error(w, "Données JSON invalides", http.StatusBadRequest)
+		return
+	}
+
+	// 🔢 Auto-incrémentation : on ajoute 1 au dernier ID connu
+	newSpot.ID = len(dataspots) + 1
+
+	// ➕ Ajoute le nouveau spot à la liste
+	dataspots = append(dataspots, newSpot)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated) // ✅ 201 Created
+	json.NewEncoder(w).Encode(newSpot)
+}
+
+
 // 🚀 Fonction principale : démarre le serveur et configure les routes
 func main() {
 	r := mux.NewRouter() // 🧭 Initialise le routeur Gorilla Mux
@@ -125,6 +149,8 @@ func main() {
 	r.HandleFunc("/api/spots", GetSpots).Methods("GET")               // 🔍 Tous les spots
 	r.HandleFunc("/api/spots/{id}", GetSpotByID).Methods("GET")       // 🔍 Spot par ID
 	r.HandleFunc("/api/spots/{id}", UpdateSpotRating).Methods("PUT")  // ✏️ Modifier une note
+	r.HandleFunc("/api/spots", CreateSpot).Methods("POST")
+
 
 	log.Println("Serveur en écoute sur http://localhost:8080")        // 🟢 Message de démarrage
 	log.Fatal(http.ListenAndServe(":8080", r))                        // 🚀 Lance le serveur
