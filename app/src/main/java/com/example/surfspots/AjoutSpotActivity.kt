@@ -88,7 +88,6 @@ class AjoutSpotActivity : AppCompatActivity() {
 
         // ➕ Bouton pour valider l’ajout d’un spot
         val addButton = findViewById<Button>(R.id.addButton)
-        // ➕ Bouton pour valider l’ajout d’un spot
         addButton.setOnClickListener {
             // 🧾 Récupérer les données saisies
             val name = editName.text.toString()
@@ -123,7 +122,6 @@ class AjoutSpotActivity : AppCompatActivity() {
                 sendSpotToGoApi(spot)
             }
         }
-
 
         // 🔙 Bouton retour à l’accueil
         val buttonRetourAccueil = findViewById<Button>(R.id.buttonRetourAccueil)
@@ -196,10 +194,9 @@ class AjoutSpotActivity : AppCompatActivity() {
             put("rating", spot.rating)
         }
 
-
         val url = "http://10.0.2.2:8080/api/spots"
 
-        val request = JsonObjectRequest(
+        val request = object : JsonObjectRequest(
             Request.Method.POST,
             url,
             jsonBody,
@@ -211,18 +208,13 @@ class AjoutSpotActivity : AppCompatActivity() {
                 Log.e("POST", "Erreur Go API : ${error.message}")
                 Toast.makeText(this@AjoutSpotActivity, "❌ Erreur Go API", Toast.LENGTH_SHORT).show()
             }
-
         ) {
             override fun getHeaders(): Map<String, String> {
                 return mapOf(
-//                    
                     "Content-Type" to "application/json"
                 )
             }
         }
-
-        )
-
 
         Volley.newRequestQueue(this).add(request)
     }
