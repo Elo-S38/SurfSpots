@@ -129,7 +129,7 @@ func main() {
 	pswd := ""
 
 	// Connexion à la base MySQL
-	db, err := sql.Open("mysql", "root:"+pswd+"@tcp(localhost:3306)/testdb")
+	db, err := sql.Open("mysql", "root:"+pswd+"@tcp(localhost:3306)/surfspot")
 	if err != nil {
 		log.Fatal("Erreur lors de sql.Open :", err)
 	}
@@ -142,13 +142,13 @@ func main() {
 	fmt.Println("Connexion à la base réussie")
 
 	// Exemple d'insertion
-	insert, err := db.Query("INSERT INTO `testdb`.`students` (`id`, `firstname`, `lastname`) VALUES ('3', 'Carl', 'Jones');")
+	insert, err := db.Query("INSERT INTO `surfspot`.`spots` ( `name`, `surfBreak`, `photo`, `address`, `difficulty`, `seasonStart`, `seasonEnd`, `rating`) VALUES ('Carl', 'Point Break', 'https://example.com/pipeline.jpg', 'aaa', '5', '2025-07-01', '2025-07-02', '0');")
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer insert.Close()
 
-	fmt.Println("Insertion réussie ✅")
+	fmt.Println("Insertion réussie")
 
 	// Configuration du routeur
 	r := mux.NewRouter()
