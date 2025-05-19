@@ -9,9 +9,9 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/joho/godotenv"      // 🌿 Pour charger le fichier .env
 	_ "github.com/go-sql-driver/mysql" // 🧩 Driver MySQL
 	"github.com/gorilla/mux"           // 🐵 Gestion des routes dynamiques
-	"github.com/joho/godotenv"         // 🌿 Pour charger le fichier .env
 )
 
 // 🎯 Structure représentant un spot
@@ -85,7 +85,7 @@ func GetSpots(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(spots)
 }
-
+  
 // 🌐 GET /api/spots/{id}
 func GetSpotByID(w http.ResponseWriter, r *http.Request) {
 	idStr := mux.Vars(r)["id"]
@@ -156,33 +156,14 @@ func CreateSpot(w http.ResponseWriter, r *http.Request) {
 
 // 🚀 main : démarrage du serveur
 func main() {
+	r := mux.NewRouter()
 
-	fmt.Println("Connexion à la base de données...")
+	// 📌 Routes de l’API
+	r.HandleFunc("/api/spots", GetSpots).Methods("GET")
+	r.HandleFunc("/api/spots/{id}", GetSpotByID).Methods("GET")
+	r.HandleFunc("/api/spots/{id}", UpdateSpotRating).Methods("PUT")
+	r.HandleFunc("/api/spots", CreateSpot).Methods("POST")
 
-	// Récupération du mot de passe depuis les variables d'environnement
-	pswd := ""
-
-	// Connexion à la base MySQL
-	db, err := sql.Open("mysql", "root:"+pswd+"@tcp(localhost:3306)/surfspot")
-	if err != nil {
-		log.Fatal("Erreur lors de sql.Open :", err)
-	}
-	defer db.Close()
-
-	err = db.Ping()
-	if err != nil {
-		log.Fatal("Erreur de connexion à la base :", err)
-	}
-	fmt.Println("Connexion à la base réussie")
-
-	// Exemple d'insertion
-	insert, err := db.Query("INSERT INTO `surfspot`.`spots` ( `name`, `surfBreak`, `photo`, `address`, `difficulty`, `seasonStart`, `seasonEnd`, `rating`) VALUES ('Carl', 'Point Break', 'https://example.com/pipeline.jpg', 'aaa', '5', '2025-07-01', '2025-07-02', '0');")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer insert.Close()
-
-	fmt.Println("Insertion réussie")
-
-	// Configuration du routeur
+	log.Println("🌍 Serveur en écoute sur http://localhost:8080")
+	log.Fatal(http.ListenAndServe(":8080", r))
 }
