@@ -24,9 +24,7 @@
         android:theme="@style/Theme.SurfSpots"
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
-        <activity
-            android:name="com.example.surfspotsxml.SpotRatingActivity"
-            android:exported="false" />
+
         <!-- Déclaration de l'activité AjoutSpotActivity -->
         <activity
             android:name="com.example.surfspotsxml.AjoutSpotActivity"

@@ -1,34 +1,41 @@
+// 📦 Package de l’application
 package com.example.surfspotsxml
 
+// 📚 Imports nécessaires
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import com.android.volley.Request
-import com.android.volley.toolbox.JsonObjectRequest
+import com.android.volley.toolbox.StringRequest // Pour requêtes PUT simples sans réponse JSON
+import com.android.volley.toolbox.JsonObjectRequest // Pour GET avec réponse JSON
 import com.android.volley.toolbox.Volley
-import com.bumptech.glide.Glide
+import com.bumptech.glide.Glide // Pour afficher les images
 import com.example.surfspots.R
 import org.json.JSONObject
 import java.io.File
-import com.google.android.material.snackbar.Snackbar
+import com.google.android.material.snackbar.Snackbar // Pour feedback utilisateur visuel
+
+
 
 class SpotDetailActivity : AppCompatActivity() {
 
-    private var spotId: Int = -1 // ID du spot à afficher et noter
+    // 🔢 Variable pour stocker l’ID du spot reçu depuis l’intent
+    private var spotId: Int = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_spot_detail) // Associe l'activité à son layout XML
+        setContentView(R.layout.activity_spot_detail) // 🔗 Associe l'activité à son fichier XML
 
-        val buttonRetour = findViewById<Button>(R.id.buttonRetourList) // 🔙 Bouton retour
-        buttonRetour.setOnClickListener { finish() } // Ferme l'activité
+        // 🔙 Bouton de retour à l’activité précédente
+        val buttonRetour = findViewById<Button>(R.id.buttonRetourList)
+        buttonRetour.setOnClickListener { finish() }
 
-        // 🔍 Récupère l’ID du spot envoyé depuis l'activité précédente
+        // 🎯 Récupération de l’ID du spot depuis l’intent
         spotId = intent.getIntExtra("spot_id", -1)
 
-        // ✅ Si l'ID est valide, on charge les détails du spot
+        // ✅ Si l’ID est valide, on charge les détails du spot
         if (spotId != -1) {
             fetchSpotDetails(spotId)
         } else {
@@ -36,53 +43,65 @@ class SpotDetailActivity : AppCompatActivity() {
             finish()
         }
 
-        // 📝 Champs pour saisir la note et envoyer
+        // 📝 Champs pour saisir la note et bouton pour envoyer
         val editRating = findViewById<EditText>(R.id.editRating)
         val buttonEnvoyer = findViewById<Button>(R.id.buttonEnvoyerNote)
 
-        // 🚀 Envoie de la note à l'API Go quand on clique
+        // 🚀 Lorsqu'on clique sur le bouton, on envoie la note au backend
         buttonEnvoyer.setOnClickListener {
+            // 🔢 On récupère la note saisie
             val note = editRating.text.toString().toIntOrNull()
 
-            // ❌ Vérifie que la note est valide
+            // ❌ Si la note est invalide (pas un nombre ou pas entre 0 et 5), on stoppe
             if (note == null || note !in 0..5) {
                 Toast.makeText(this, "Note invalide (0 à 5)", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
-            val url = "http://10.0.2.2:8080/api/spots/$spotId" // URL vers l'API Go
-            val jsonBody = JSONObject().put("rating", note)   // Corps JSON envoyé : { "rating": 4 }
+            val url = "http://192.168.75.45:8080/api/spots/$spotId"
 
-            // 📦 Création de la requête PUT
-            val request = JsonObjectRequest(
-                Request.Method.PUT,
+            val jsonBody = JSONObject().put("rating", note) // 📦 Préparation du corps JSON
+
+            Log.d("RATING_PUT", "Envoi JSON : $jsonBody") // 📋 Log debug
+
+            // 📤 Requête PUT avec StringRequest (car aucune réponse JSON attendue)
+            val request = object : StringRequest(
+                Method.PUT,
                 url,
-                jsonBody,
                 {
-                    // ✅ Affiche une confirmation visuelle avec Snackbar
+                    // ✅ Affiche un message de confirmation si la note est bien enregistrée
                     Snackbar.make(findViewById(android.R.id.content), "Note enregistrée !", Snackbar.LENGTH_LONG).show()
                 },
                 { error ->
+                    // ❌ Affiche un message en cas d’erreur
                     Log.e("RATING_PUT", "Erreur API : ${error.message}")
                     Toast.makeText(this, "Erreur serveur", Toast.LENGTH_SHORT).show()
                 }
-            )
+            ) {
+                // 🧾 Spécifie que le corps de la requête est du JSON
+                override fun getBodyContentType(): String = "application/json"
 
-            Volley.newRequestQueue(this).add(request) // 📡 Envoie la requête au serveur
+                // 🔁 Convertit le JSON en tableau de bytes pour l’envoi
+                override fun getBody(): ByteArray = jsonBody.toString().toByteArray(Charsets.UTF_8)
+            }
+
+            // 🚀 Envoie la requête via Volley
+            Volley.newRequestQueue(this).add(request)
         }
     }
 
-    // 📲 Fonction pour récupérer les détails du spot depuis l’API Go
+    // 📲 Fonction qui récupère les détails d’un spot depuis l’API
     private fun fetchSpotDetails(id: Int) {
-        val url = "http://10.0.2.2:8080/api/spots/$id" // URL pour GET /api/spots/{id}
-        val queue = Volley.newRequestQueue(this)
+        val url = "http://192.168.75.45:8080/api/spots/$spotId"
+
+        val queue = Volley.newRequestQueue(this) // 📡 File d’attente Volley
 
         val request = JsonObjectRequest(
             Request.Method.GET,
             url,
-            null,
+            null, // Pas de corps pour une requête GET
             { response ->
-                // 🔄 On récupère tous les champs utiles du JSON
+                // ✅ On lit les champs JSON reçus
                 val name = response.optString("name", "Inconnu")
                 val location = response.optString("address", "Inconnu")
                 val surfBreak = response.optString("surfBreak", "N/A")
@@ -92,7 +111,7 @@ class SpotDetailActivity : AppCompatActivity() {
                 val rating = response.optInt("rating", 0)
                 val imageUrlOrPath = response.optString("photo", "")
 
-                // 📌 On associe chaque champ à sa vue
+                // 🖼️ Références aux vues dans le layout
                 val imageView = findViewById<ImageView>(R.id.detailImage)
                 val nameView = findViewById<TextView>(R.id.detailName)
                 val locationView = findViewById<TextView>(R.id.detailLocation)
@@ -102,7 +121,7 @@ class SpotDetailActivity : AppCompatActivity() {
                 val addressView = findViewById<TextView>(R.id.detailAddress)
                 val ratingView = findViewById<TextView>(R.id.detailRating)
 
-                // 🖼️ Chargement de l’image selon sa source
+                // 🖼️ Chargement de l’image en fonction de son type (URL, fichier local ou content URI)
                 when {
                     imageUrlOrPath.startsWith("http") -> {
                         Glide.with(this).load(imageUrlOrPath)
@@ -124,7 +143,7 @@ class SpotDetailActivity : AppCompatActivity() {
                     }
                 }
 
-                // 🧾 Remplit les champs textes avec les données reçues
+                // 🧾 Remplit les vues texte avec les infos reçues
                 nameView.text = name
                 locationView.text = location
                 surfBreakView.text = surfBreak
@@ -134,12 +153,14 @@ class SpotDetailActivity : AppCompatActivity() {
                 ratingView.text = "Note : $rating / 5"
             },
             { error ->
+                // ❌ Si l’API renvoie une erreur
                 Log.e("Volley", "Erreur API : ${error.message}")
                 Toast.makeText(this, "Erreur de chargement", Toast.LENGTH_SHORT).show()
                 finish()
             }
         )
 
-        queue.add(request) // ➕ Envoie la requête GET
+        // 🚀 Exécute la requête GET
+        queue.add(request)
     }
 }
