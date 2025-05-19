@@ -13,3 +13,8 @@
 .externalNativeBuild
 .cxx
 local.properties
+config.env
+# Fichier local non versionné
+secrets.properties
+
+

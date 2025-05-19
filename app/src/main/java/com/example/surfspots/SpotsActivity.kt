@@ -13,6 +13,8 @@ import com.example.surfspots.R
 import com.example.surfspots.Spot
 import com.example.surfspots.SpotAdapter
 
+
+
 class SpotsActivity : AppCompatActivity() {
 
     // 🟡 Liste qui contiendra les spots reçus de l'API
@@ -48,7 +50,8 @@ class SpotsActivity : AppCompatActivity() {
 
     private fun fetchSpotsFromApi() {
         val queue = Volley.newRequestQueue(this)
-        val url = "http://10.0.2.2:8080/api/spots" // ✅ URL de ton backend Go local
+        val url = "http://192.168.75.45:8080/api/spots"
+
 
         val request = JsonArrayRequest(
             Request.Method.GET,

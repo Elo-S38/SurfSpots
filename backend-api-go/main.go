@@ -2,17 +2,19 @@ package main // 📦 Point d'entrée principal du programme
 
 import (
 	"database/sql"
-	"encoding/json" // 📦 Pour encoder/décoder les données en JSON
+	"encoding/json"
 	"fmt"
-	"log"      // 📝 Pour afficher des messages dans le terminal
-	"net/http" // 🌐 Pour gérer les requêtes et les réponses HTTP
-	"strconv"  // 🔢 Pour convertir des chaînes de caractères en entiers
+	"log"
+	"net/http"
+	"os"
+	"strconv"
 
-	_ "github.com/go-sql-driver/mysql"
-	"github.com/gorilla/mux" // 🐵 Librairie externe pour gérer les routes dynamiques
+	"github.com/joho/godotenv"      // 🌿 Pour charger le fichier .env
+	_ "github.com/go-sql-driver/mysql" // 🧩 Driver MySQL
+	"github.com/gorilla/mux"           // 🐵 Gestion des routes dynamiques
 )
 
-// 🎯 Définition de la structure de données envoyée à l’application mobile
+// 🎯 Structure représentant un spot
 type DataSpot struct {
 	ID          int    `json:"id"`
 	Name        string `json:"name"`
@@ -25,43 +27,89 @@ type DataSpot struct {
 	Rating      int    `json:"rating"`
 }
 
-// 💾 Liste simulée de spots de surf
-var dataspots = []DataSpot{
-	{ID: 1, Name: "Lacanau", SurfBreak: "Point Break", Photo: "https://example.com/photos/lacanau.jpg", Address: "Gironde", Difficulty: 3, SeasonStart: "2025-08-01", SeasonEnd: "2025-09-01", Rating: 0},
-	{ID: 2, Name: "Hossegor", SurfBreak: "Point Break", Photo: "https://example.com/photos/hossegor.jpg", Address: "Landes", Difficulty: 4, SeasonStart: "2025-03-01", SeasonEnd: "2025-10-01", Rating: 0},
-	{ID: 3, Name: "Biarritz", SurfBreak: "Point Break", Photo: "https://example.com/photos/hossegor.jpg", Address: "Landes", Difficulty: 4, SeasonStart: "2024-03-01", SeasonEnd: "2024-10-01", Rating: 0},
+var db *sql.DB // 🔌 Connexion à la base
+
+func init() {
+	fmt.Println("🔐 Chargement des variables d'environnement...")
+
+	// ✅ Charge le fichier config.env
+	err := godotenv.Load("config.env")
+	if err != nil {
+		log.Fatal("❌ Erreur de chargement du fichier config.env :", err)
+	}
+
+	// 📦 Récupération des infos de connexion depuis les variables d'environnement
+	user := os.Getenv("DB_USER")
+	pass := os.Getenv("DB_PASS")
+	host := os.Getenv("DB_HOST")
+	port := os.Getenv("DB_PORT")
+	name := os.Getenv("DB_NAME")
+
+	// 🔗 Création du DSN (Data Source Name)
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", user, pass, host, port, name)
+
+	// 📡 Connexion à la base MySQL
+	db, err = sql.Open("mysql", dsn)
+	if err != nil {
+		log.Fatal("❌ Erreur lors de sql.Open :", err)
+	}
+
+	// 🔁 Vérifie la connexion
+	if err = db.Ping(); err != nil {
+		log.Fatal("❌ Impossible de se connecter à la base :", err)
+	}
+
+	fmt.Println("✅ Connexion à la base réussie")
 }
 
-// 🌐 GET /api/spots → Tous les spots
+// 🌐 GET /api/spots
 func GetSpots(w http.ResponseWriter, r *http.Request) {
+	rows, err := db.Query("SELECT * FROM spots")
+	if err != nil {
+		http.Error(w, "Erreur SQL", http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	var spots []DataSpot
+	for rows.Next() {
+		var s DataSpot
+		err := rows.Scan(&s.ID, &s.Name, &s.SurfBreak, &s.Photo, &s.Address, &s.Difficulty, &s.SeasonStart, &s.SeasonEnd, &s.Rating)
+		if err != nil {
+			http.Error(w, "Erreur lecture", http.StatusInternalServerError)
+			return
+		}
+		spots = append(spots, s)
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(dataspots)
+	json.NewEncoder(w).Encode(spots)
 }
 
-// 🌐 GET /api/spots/{id} → Spot par ID
+// 🌐 GET /api/spots/{id}
 func GetSpotByID(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id, err := strconv.Atoi(vars["id"])
+	idStr := mux.Vars(r)["id"]
+	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		http.Error(w, "ID invalide", http.StatusBadRequest)
 		return
 	}
 
-	for _, spot := range dataspots {
-		if spot.ID == id {
-			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(spot)
-			return
-		}
+	row := db.QueryRow("SELECT * FROM spots WHERE id = ?", id)
+	var s DataSpot
+	if err := row.Scan(&s.ID, &s.Name, &s.SurfBreak, &s.Photo, &s.Address, &s.Difficulty, &s.SeasonStart, &s.SeasonEnd, &s.Rating); err != nil {
+		http.Error(w, "Spot non trouvé", http.StatusNotFound)
+		return
 	}
 
-	http.Error(w, "Spot non trouvé", http.StatusNotFound)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(s)
 }
 
-// 🌐 PUT /api/spots/{id} → Met à jour la note d’un spot
+// 🌐 PUT /api/spots/{id}
 func UpdateSpotRating(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id, err := strconv.Atoi(vars["id"])
+	idStr := mux.Vars(r)["id"]
+	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		http.Error(w, "ID invalide", http.StatusBadRequest)
 		return
@@ -70,94 +118,52 @@ func UpdateSpotRating(w http.ResponseWriter, r *http.Request) {
 	var payload struct {
 		Rating int `json:"rating"`
 	}
-	err = json.NewDecoder(r.Body).Decode(&payload)
-	if err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		http.Error(w, "Corps JSON invalide", http.StatusBadRequest)
 		return
 	}
 
-	for i, spot := range dataspots {
-		if spot.ID == id {
-			dataspots[i].Rating = payload.Rating
-			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(dataspots[i])
-			return
-		}
-	}
-
-	http.Error(w, "Spot non trouvé", http.StatusNotFound)
-}
-
-// 🌐 POST /api/spots → Ajoute un nouveau spot
-func CreateSpot(w http.ResponseWriter, r *http.Request) {
-	var newSpot DataSpot
-	err := json.NewDecoder(r.Body).Decode(&newSpot)
+	_, err = db.Exec("UPDATE spots SET rating = ? WHERE id = ?", payload.Rating, id)
 	if err != nil {
-		http.Error(w, "Données JSON invalides", http.StatusBadRequest)
+		http.Error(w, "Erreur update", http.StatusInternalServerError)
 		return
 	}
 
-	// Vérifie qu’un spot avec le même nom n’existe pas
-	for _, spot := range dataspots {
-		if spot.Name == newSpot.Name {
-			http.Error(w, "Un spot avec ce nom existe déjà", http.StatusBadRequest)
-			return
-		}
-	}
-
-	// Auto-incrémentation de l’ID
-	maxID := 0
-	for _, spot := range dataspots {
-		if spot.ID > maxID {
-			maxID = spot.ID
-		}
-	}
-	newSpot.ID = maxID + 1
-
-	dataspots = append(dataspots, newSpot)
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(newSpot)
+	w.WriteHeader(http.StatusNoContent)
 }
 
-// 🚀 Fonction principale
+// 🌐 POST /api/spots
+func CreateSpot(w http.ResponseWriter, r *http.Request) {
+	var s DataSpot
+	if err := json.NewDecoder(r.Body).Decode(&s); err != nil {
+		http.Error(w, "JSON invalide", http.StatusBadRequest)
+		return
+	}
+
+	res, err := db.Exec("INSERT INTO spots (name, surfBreak, photo, address, difficulty, seasonStart, seasonEnd, rating) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+		s.Name, s.SurfBreak, s.Photo, s.Address, s.Difficulty, s.SeasonStart, s.SeasonEnd, s.Rating)
+	if err != nil {
+		http.Error(w, "Erreur insertion", http.StatusInternalServerError)
+		return
+	}
+
+	id, _ := res.LastInsertId()
+	s.ID = int(id)
+
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(s)
+}
+
+// 🚀 main : démarrage du serveur
 func main() {
-	fmt.Println("Connexion à la base de données...")
-
-	// Récupération du mot de passe depuis les variables d'environnement
-	pswd := ""
-
-	// Connexion à la base MySQL
-	db, err := sql.Open("mysql", "root:"+pswd+"@tcp(localhost:3306)/testdb")
-	if err != nil {
-		log.Fatal("Erreur lors de sql.Open :", err)
-	}
-	defer db.Close()
-
-	err = db.Ping()
-	if err != nil {
-		log.Fatal("Erreur de connexion à la base :", err)
-	}
-	fmt.Println("Connexion à la base réussie")
-
-	// Exemple d'insertion
-	insert, err := db.Query("INSERT INTO `testdb`.`students` (`id`, `firstname`, `lastname`) VALUES ('3', 'Carl', 'Jones');")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer insert.Close()
-
-	fmt.Println("Insertion réussie ✅")
-
-	// Configuration du routeur
 	r := mux.NewRouter()
+
+	// 📌 Routes de l’API
 	r.HandleFunc("/api/spots", GetSpots).Methods("GET")
 	r.HandleFunc("/api/spots/{id}", GetSpotByID).Methods("GET")
 	r.HandleFunc("/api/spots/{id}", UpdateSpotRating).Methods("PUT")
 	r.HandleFunc("/api/spots", CreateSpot).Methods("POST")
 
-	// Lancement du serveur
-	log.Println("Serveur en écoute sur http://localhost:8080")
+	log.Println("🌍 Serveur en écoute sur http://localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", r))
 }
