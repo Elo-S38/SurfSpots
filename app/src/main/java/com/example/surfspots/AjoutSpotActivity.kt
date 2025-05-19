@@ -1,7 +1,7 @@
-// 📦 Déclaration du package de cette activité
+// 📦 Déclaration du package
 package com.example.surfspotsxml
 
-// 🧩 Importation des librairies nécessaires Android
+// 📚 Imports nécessaires
 import android.Manifest
 import android.app.Activity
 import android.app.DatePickerDialog
@@ -16,14 +16,10 @@ import android.widget.*
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-
-// 📡 Requêtes réseau via Volley
 import com.android.volley.Request
 import com.android.volley.Response
 import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
-
-// 🌍 Accès aux ressources et au modèle de données
 import com.example.surfspots.R
 import com.example.surfspots.Spot
 import org.json.JSONObject
@@ -32,17 +28,14 @@ import java.util.*
 
 class AjoutSpotActivity : AppCompatActivity() {
 
-    // 🖼️ Composant ImageView pour afficher la prévisualisation de l'image
-    private lateinit var imageView: ImageView
+    private lateinit var imageView: ImageView // 🖼️ Image sélectionnée
+    private var selectedImageUri: Uri? = null // 🔗 URI de l’image locale
 
-    // 🔗 URI de l'image sélectionnée
-    private var selectedImageUri: Uri? = null
-
-    // 🎯 Lanceur d'activité pour sélectionner une image dans la galerie
+    // 🎯 Lance la sélection d'image
     private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK && result.data != null) {
             selectedImageUri = result.data?.data
-            imageView.setImageURI(selectedImageUri)
+            imageView.setImageURI(selectedImageUri) // Affiche l’image sélectionnée
         }
     }
 
@@ -50,7 +43,7 @@ class AjoutSpotActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_ajout_spot)
 
-        // 📝 Références aux champs de formulaire
+        // 🔢 Champs de formulaire
         val editName = findViewById<EditText>(R.id.nameEditText)
         val editLocation = findViewById<EditText>(R.id.locationEditText)
         val editDifficulty = findViewById<EditText>(R.id.difficultyEditText)
@@ -58,22 +51,22 @@ class AjoutSpotActivity : AppCompatActivity() {
         val editSeasonEnd = findViewById<EditText>(R.id.seasonEndEditText)
         val urlEditText = findViewById<EditText>(R.id.imageUrlEditText)
 
-        // ✅ CheckBox pour sélectionner le type de vague
+        // ✅ Checkboxes pour le type de vague
         val cb1 = findViewById<CheckBox>(R.id.surfBreakOption1)
         val cb2 = findViewById<CheckBox>(R.id.surfBreakOption2)
         val cb3 = findViewById<CheckBox>(R.id.surfBreakOption3)
         val cb4 = findViewById<CheckBox>(R.id.surfBreakOption4)
 
-        // 🖼️ ImageView pour prévisualiser l'image sélectionnée
+        // 🖼️ Bouton + image
         imageView = findViewById(R.id.imageView)
         val selectImageButton = findViewById<Button>(R.id.selectImageButton)
 
-        // 🚫 Désactiver le bouton galerie si une URL est déjà tapée
+        // 📵 Désactive le bouton si une URL est tapée
         urlEditText.setOnFocusChangeListener { _, _ ->
             selectImageButton.isEnabled = urlEditText.text.isBlank()
         }
 
-        // 📷 Bouton pour ouvrir la galerie et choisir une image
+        // 📷 Bouton pour ouvrir la galerie
         selectImageButton.setOnClickListener {
             val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
                 Manifest.permission.READ_MEDIA_IMAGES
@@ -86,10 +79,10 @@ class AjoutSpotActivity : AppCompatActivity() {
             }
         }
 
-        // ➕ Bouton pour valider l'ajout d'un spot
+        // ➕ Bouton d'ajout du spot
         val addButton = findViewById<Button>(R.id.addButton)
         addButton.setOnClickListener {
-            // 🧾 Récupérer les données saisies
+            // 🎯 Récupération des valeurs saisies
             val name = editName.text.toString()
             val location = editLocation.text.toString()
             val difficulty = editDifficulty.text.toString().toIntOrNull() ?: 1
@@ -97,18 +90,19 @@ class AjoutSpotActivity : AppCompatActivity() {
             val seasonEnd = editSeasonEnd.text.toString()
             val manualUrl = urlEditText.text.toString()
 
+            // 🌊 Récupération des vagues cochées
             val surfBreaks = mutableListOf<String>()
             if (cb1.isChecked) surfBreaks.add(cb1.text.toString())
             if (cb2.isChecked) surfBreaks.add(cb2.text.toString())
             if (cb3.isChecked) surfBreaks.add(cb3.text.toString())
             if (cb4.isChecked) surfBreaks.add(cb4.text.toString())
 
-            // 🟢 Cas 1 : une URL est fournie → on l'utilise telle quelle
+            // 🟢 Cas 1 : URL image directe
             if (manualUrl.isNotBlank()) {
                 val spot = Spot(0, name, location, manualUrl, surfBreaks.joinToString(", "), difficulty, seasonStart, seasonEnd, location, 0)
                 sendSpotToGoApi(spot)
             }
-            // 🟡 Cas 2 : une image de la galerie est sélectionnée → on l'envoie à Cloudinary
+            // 🟡 Cas 2 : image locale → envoi vers Cloudinary
             else if (selectedImageUri != null) {
                 uploadToCloudinary(selectedImageUri!!) { imageUrl ->
                     val finalUrl = imageUrl ?: ""
@@ -116,42 +110,46 @@ class AjoutSpotActivity : AppCompatActivity() {
                     sendSpotToGoApi(spot)
                 }
             }
-            // 🔵 Cas 3 : pas d'image → on envoie quand même un spot sans image
+            // 🔵 Cas 3 : aucune image
             else {
                 val spot = Spot(0, name, location, "", surfBreaks.joinToString(", "), difficulty, seasonStart, seasonEnd, location, 0)
                 sendSpotToGoApi(spot)
             }
         }
 
-        // 🔙 Bouton retour à l'accueil
+        // 🔙 Retour à l'accueil
         val buttonRetourAccueil = findViewById<Button>(R.id.buttonRetourAccueil)
         buttonRetourAccueil.setOnClickListener { finish() }
 
-        // 📅 Sélection des dates de saison
+        // 📅 Choix de la saison avec DatePicker
         editSeasonStart.setOnClickListener { showDatePicker { editSeasonStart.setText(formatDate(it)) } }
         editSeasonEnd.setOnClickListener { showDatePicker { editSeasonEnd.setText(formatDate(it)) } }
     }
 
-    // 📁 Ouvrir la galerie Android
+    // 📁 Ouvre la galerie Android
     private fun openGallery() {
         val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
         pickImageLauncher.launch(intent)
     }
 
-    // 🕓 Formater une date en yyyy-MM-dd
+    // 🗓️ Format de la date
     private fun formatDate(date: Date): String {
         return SimpleDateFormat("yyyy-MM-dd", Locale.US).format(date)
     }
 
-    // 📆 Afficher un DatePickerDialog et renvoyer la date sélectionnée
+    // 📆 Affiche le calendrier Android
     private fun showDatePicker(onDateSelected: (Date) -> Unit) {
         val calendar = Calendar.getInstance()
-        DatePickerDialog(this, { _, y, m, d -> calendar.set(y, m, d); onDateSelected(calendar.time) },
-            calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)
+        DatePickerDialog(
+            this,
+            { _, y, m, d -> calendar.set(y, m, d); onDateSelected(calendar.time) },
+            calendar.get(Calendar.YEAR),
+            calendar.get(Calendar.MONTH),
+            calendar.get(Calendar.DAY_OF_MONTH)
         ).show()
     }
 
-    // ☁️ Uploader une image vers Cloudinary et récupérer l'URL
+    // ☁️ Upload vers Cloudinary
     private fun uploadToCloudinary(imageUri: Uri, onResult: (String?) -> Unit) {
         val inputStream = contentResolver.openInputStream(imageUri) ?: return onResult(null)
         val imageBytes = inputStream.readBytes()
@@ -181,7 +179,7 @@ class AjoutSpotActivity : AppCompatActivity() {
         Volley.newRequestQueue(this).add(request)
     }
 
-    // 🌍 Envoi du spot au backend Go via API POST
+    // 🌍 Envoie les données du spot à l’API Go en POST
     private fun sendSpotToGoApi(spot: Spot) {
         val jsonBody = JSONObject().apply {
             put("name", spot.name)
@@ -194,7 +192,9 @@ class AjoutSpotActivity : AppCompatActivity() {
             put("rating", spot.rating)
         }
 
-        val url = "http://10.0.2.2:8080/api/spots"
+        val url = "http://192.168.75.45:8080/api/spots"
+
+
 
         val request = object : JsonObjectRequest(
             Request.Method.POST,
@@ -210,9 +210,7 @@ class AjoutSpotActivity : AppCompatActivity() {
             }
         ) {
             override fun getHeaders(): Map<String, String> {
-                return mapOf(
-                    "Content-Type" to "application/json"
-                )
+                return mapOf("Content-Type" to "application/json")
             }
         }
 
