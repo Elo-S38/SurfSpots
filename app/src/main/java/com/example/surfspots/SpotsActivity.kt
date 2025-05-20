@@ -3,95 +3,115 @@ package com.example.surfspotsxml
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import android.widget.Button
-import android.widget.ListView
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import com.android.volley.Request
-import com.android.volley.toolbox.JsonArrayRequest
+import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
 import com.example.surfspots.R
 import com.example.surfspots.Spot
 import com.example.surfspots.SpotAdapter
 
-
-
 class SpotsActivity : AppCompatActivity() {
 
-    // 🟡 Liste qui contiendra les spots reçus de l'API
     private val spots = mutableListOf<Spot>()
-
     private lateinit var listView: ListView
     private lateinit var adapter: SpotAdapter
+
+    private lateinit var searchEditText: EditText
+    private lateinit var searchButton: Button
+    private lateinit var nextPageButton: Button
+    private lateinit var prevPageButton: Button
+
+    private var currentPage = 1
+    private val spotsPerPage = 5
+    private var currentLocationFilter: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_spots)
 
-        // 🔙 Bouton de retour
-        val buttonRetour = findViewById<Button>(R.id.buttonRetourAccueil)
-        buttonRetour.setOnClickListener { finish() }
-
-        // 🔃 Initialisation de la liste
         listView = findViewById(R.id.listView)
         adapter = SpotAdapter(this, spots)
         listView.adapter = adapter
 
-        // 📲 Ouvre les détails du spot au clic
+        searchEditText = findViewById(R.id.editSearchLocation)
+        searchButton = findViewById(R.id.buttonSearch)
+        nextPageButton = findViewById(R.id.buttonNextPage)
+        prevPageButton = findViewById(R.id.buttonPrevPage)
+
+        findViewById<Button>(R.id.buttonRetourAccueil).setOnClickListener {
+            finish()
+        }
+
+        // 🔍 Lancer une recherche par lieu
+        searchButton.setOnClickListener {
+            currentLocationFilter = searchEditText.text.toString()
+            currentPage = 1
+            fetchSpotsFromApi()
+        }
+
+        // ⏩ Page suivante
+        nextPageButton.setOnClickListener {
+            currentPage++
+            fetchSpotsFromApi()
+        }
+
+        // ⏪ Page précédente
+        prevPageButton.setOnClickListener {
+            if (currentPage > 1) {
+                currentPage--
+                fetchSpotsFromApi()
+            }
+        }
+
+        // 📲 Aller aux détails d’un spot
         listView.setOnItemClickListener { _, _, position, _ ->
             val intent = Intent(this, SpotDetailActivity::class.java)
             intent.putExtra("spot_id", spots[position].id)
-
             startActivity(intent)
         }
 
-        // 🌐 Appelle l’API Go pour charger les spots
         fetchSpotsFromApi()
     }
 
     private fun fetchSpotsFromApi() {
         val queue = Volley.newRequestQueue(this)
-        val url = "http://192.168.75.45:8080/api/spots"
 
+        val baseUrl = "http://192.168.75.45:8080/api/spots"
+        val locationParam = if (currentLocationFilter.isNotBlank()) "&location=${currentLocationFilter}" else ""
+        val url = "$baseUrl?page=$currentPage&limit=$spotsPerPage$locationParam"
 
-        val request = JsonArrayRequest(
+        val request = JsonObjectRequest(
             Request.Method.GET,
             url,
             null,
             { response ->
-                Log.d("Volley", "Spots reçus : ${response.length()}")
-                spots.clear() // Vide la liste avant d’ajouter les nouveaux spots
+                val dataArray = response.getJSONArray("data")
+                spots.clear()
 
-                for (i in 0 until response.length()) {
-                    val item = response.getJSONObject(i)
-
-                    // ✅ Récupération des 4 champs JSON envoyés par l’API Go
-                    val name = item.optString("name", "Inconnu")
-                    val surfBreak = item.optString("surfBreak", "Inconnu")
-                    val photo = item.optString("photo", "")
-                    val address = item.optString("address", "Adresse inconnue")
-
-                    // 🔁 Création de l’objet Spot (adapté à la structure Kotlin)
-                    val id = item.getInt("id") // ou optInt("id", -1)
+                for (i in 0 until dataArray.length()) {
+                    val item = dataArray.getJSONObject(i)
                     val spot = Spot(
-                        id = id, // ✅ bon ID depuis le JSON
-                        name = name,
-                        location = address,
-                        imageUrlOrPath = photo,
-                        surfBreak = surfBreak,
-                        difficulty = 0,
-                        seasonStart = "N/A",
-                        seasonEnd = "N/A",
-                        address = address,
-                        rating = 0
+                        id = item.getInt("id"),
+                        name = item.optString("name", "Inconnu"),
+                        location = item.optString("address", "Adresse inconnue"),
+                        imageUrlOrPath = item.optString("photo", ""),
+                        surfBreak = item.optString("surfBreak", "N/A"),
+                        difficulty = item.optInt("difficulty", 0),
+                        seasonStart = item.optString("seasonStart", ""),
+                        seasonEnd = item.optString("seasonEnd", ""),
+                        address = item.optString("address", ""),
+                        rating = item.optInt("rating", 0)
                     )
-
                     spots.add(spot)
                 }
 
-                adapter.notifyDataSetChanged() // ✅ Rafraîchit la ListView
+                adapter.notifyDataSetChanged()
             },
             { error ->
                 Log.e("Volley", "Erreur réseau : ${error.message}")
+                Toast.makeText(this, "Erreur réseau", Toast.LENGTH_SHORT).show()
             }
         )
 

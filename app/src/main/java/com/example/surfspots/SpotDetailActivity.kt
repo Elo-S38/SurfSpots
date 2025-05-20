@@ -58,7 +58,7 @@ class SpotDetailActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            val url = "http://192.168.75.45:8080/api/spots/$spotId"
+            val url = "http://192.168.75.45/api/spots/$spotId"
 
             val jsonBody = JSONObject().put("rating", note) // 📦 Préparation du corps JSON
 

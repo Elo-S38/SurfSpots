@@ -1,23 +1,70 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="16dp">
 
+    <!-- 🔍 Barre de recherche -->
+    <EditText
+        android:id="@+id/editSearchLocation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Rechercher par lieu (location)"
+        android:inputType="text"
+        android:layout_marginBottom="8dp" />
+
+    <!-- 🔘 Bouton de recherche -->
+    <Button
+        android:id="@+id/buttonSearch"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Rechercher" />
+
+    <!-- 📜 Liste des spots -->
     <ListView
         android:id="@+id/listView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
         android:divider="@android:color/darker_gray"
-        android:dividerHeight="1dp" />
+        android:dividerHeight="1dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="12dp" />
 
+    <!-- ⏮️ Pagination : page précédente + page suivante -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="8dp"
+        android:gravity="center_horizontal">
+
+        <Button
+            android:id="@+id/buttonPrevPage"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="◀ Précédent" />
+
+        <Space
+            android:layout_width="8dp"
+            android:layout_height="wrap_content" />
+
+        <Button
+            android:id="@+id/buttonNextPage"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Suivant ▶" />
+    </LinearLayout>
+
+    <!-- 🔙 Retour à l'accueil -->
     <Button
         android:id="@+id/buttonRetourAccueil"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
         android:backgroundTint="@color/surf_blue"
         android:text="Retour à l'accueil"
         android:textColor="@android:color/white" />
