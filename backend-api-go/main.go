@@ -9,9 +9,11 @@ import (
 	"os"
 	"strconv"
 
-	_ "github.com/go-sql-driver/mysql"
-	"github.com/gorilla/mux"
-	"github.com/joho/godotenv"
+
+	"github.com/joho/godotenv"      // 🌿 Pour charger le fichier .env
+	_ "github.com/go-sql-driver/mysql" // 🧩 Driver MySQL
+	"github.com/gorilla/mux"           // 🐵 Gestion des routes dynamiques
+
 )
 
 // 🎯 Structure représentant un spot
@@ -110,7 +112,9 @@ func GetSpots(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// 📦 GET /api/spots/{id}
+  
+// 🌐 GET /api/spots/{id}
+
 func GetSpotByID(w http.ResponseWriter, r *http.Request) {
 	idStr := mux.Vars(r)["id"]
 	id, err := strconv.Atoi(idStr)
@@ -181,6 +185,9 @@ func CreateSpot(w http.ResponseWriter, r *http.Request) {
 // 🚀 Démarrage du serveur
 func main() {
 	r := mux.NewRouter()
+
+
+	// 📌 Routes de l’API
 
 	r.HandleFunc("/api/spots", GetSpots).Methods("GET")
 	r.HandleFunc("/api/spots/{id}", GetSpotByID).Methods("GET")
