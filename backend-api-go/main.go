@@ -1,4 +1,4 @@
-package main // 📦 Point d'entrée principal du programme
+package main
 
 import (
 	"database/sql"
@@ -9,9 +9,9 @@ import (
 	"os"
 	"strconv"
 
-	_ "github.com/go-sql-driver/mysql" // 🧩 Driver MySQL
-	"github.com/gorilla/mux"           // 🐵 Gestion des routes dynamiques
-	"github.com/joho/godotenv"         // 🌿 Pour charger le fichier .env
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
 )
 
 // 🎯 Structure représentant un spot
@@ -27,44 +27,65 @@ type DataSpot struct {
 	Rating      int    `json:"rating"`
 }
 
-var db *sql.DB // 🔌 Connexion à la base
+var db *sql.DB
 
+// 🔐 Connexion à la base à l'initialisation
 func init() {
 	fmt.Println("🔐 Chargement des variables d'environnement...")
-
-	// ✅ Charge le fichier config.env
 	err := godotenv.Load("config.env")
 	if err != nil {
-		log.Fatal("❌ Erreur de chargement du fichier config.env :", err)
+		log.Fatal("❌ Erreur config.env :", err)
 	}
 
-	// 📦 Récupération des infos de connexion depuis les variables d'environnement
 	user := os.Getenv("DB_USER")
 	pass := os.Getenv("DB_PASS")
 	host := os.Getenv("DB_HOST")
 	port := os.Getenv("DB_PORT")
 	name := os.Getenv("DB_NAME")
 
-	// 🔗 Création du DSN (Data Source Name)
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", user, pass, host, port, name)
 
-	// 📡 Connexion à la base MySQL
 	db, err = sql.Open("mysql", dsn)
 	if err != nil {
-		log.Fatal("❌ Erreur lors de sql.Open :", err)
+		log.Fatal("❌ Erreur sql.Open :", err)
 	}
 
-	// 🔁 Vérifie la connexion
 	if err = db.Ping(); err != nil {
-		log.Fatal("❌ Impossible de se connecter à la base :", err)
+		log.Fatal("❌ Connexion échouée :", err)
 	}
 
 	fmt.Println("✅ Connexion à la base réussie")
 }
 
-// 🌐 GET /api/spots
+// 📦 GET /api/spots?page=1&limit=10&location=bordeaux
 func GetSpots(w http.ResponseWriter, r *http.Request) {
-	rows, err := db.Query("SELECT * FROM spots")
+	pageStr := r.URL.Query().Get("page")
+	limitStr := r.URL.Query().Get("limit")
+	location := r.URL.Query().Get("location")
+
+	page, err := strconv.Atoi(pageStr)
+	if err != nil || page < 1 {
+		page = 1
+	}
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil || limit < 1 {
+		limit = 10
+	}
+	offset := (page - 1) * limit
+
+	// 🧠 Construction de la requête avec filtrage dynamique
+	query := "SELECT * FROM spots WHERE 1=1"
+	params := []interface{}{}
+
+	if location != "" {
+		query += " AND address LIKE ?"
+		params = append(params, "%"+location+"%")
+	}
+
+	query += " LIMIT ? OFFSET ?"
+	params = append(params, limit, offset)
+
+	rows, err := db.Query(query, params...)
 	if err != nil {
 		http.Error(w, "Erreur SQL", http.StatusInternalServerError)
 		return
@@ -74,8 +95,7 @@ func GetSpots(w http.ResponseWriter, r *http.Request) {
 	var spots []DataSpot
 	for rows.Next() {
 		var s DataSpot
-		err := rows.Scan(&s.ID, &s.Name, &s.SurfBreak, &s.Photo, &s.Address, &s.Difficulty, &s.SeasonStart, &s.SeasonEnd, &s.Rating)
-		if err != nil {
+		if err := rows.Scan(&s.ID, &s.Name, &s.SurfBreak, &s.Photo, &s.Address, &s.Difficulty, &s.SeasonStart, &s.SeasonEnd, &s.Rating); err != nil {
 			http.Error(w, "Erreur lecture", http.StatusInternalServerError)
 			return
 		}
@@ -83,10 +103,14 @@ func GetSpots(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(spots)
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"page":  page,
+		"limit": limit,
+		"data":  spots,
+	})
 }
 
-// 🌐 GET /api/spots/{id}
+// 📦 GET /api/spots/{id}
 func GetSpotByID(w http.ResponseWriter, r *http.Request) {
 	idStr := mux.Vars(r)["id"]
 	id, err := strconv.Atoi(idStr)
@@ -106,7 +130,7 @@ func GetSpotByID(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(s)
 }
 
-// 🌐 PUT /api/spots/{id}
+// 📦 PUT /api/spots/{id}
 func UpdateSpotRating(w http.ResponseWriter, r *http.Request) {
 	idStr := mux.Vars(r)["id"]
 	id, err := strconv.Atoi(idStr)
@@ -132,7 +156,7 @@ func UpdateSpotRating(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// 🌐 POST /api/spots
+// 📦 POST /api/spots
 func CreateSpot(w http.ResponseWriter, r *http.Request) {
 	var s DataSpot
 	if err := json.NewDecoder(r.Body).Decode(&s); err != nil {
@@ -154,35 +178,15 @@ func CreateSpot(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(s)
 }
 
-// 🚀 main : démarrage du serveur
+// 🚀 Démarrage du serveur
 func main() {
+	r := mux.NewRouter()
 
-	fmt.Println("Connexion à la base de données...")
+	r.HandleFunc("/api/spots", GetSpots).Methods("GET")
+	r.HandleFunc("/api/spots/{id}", GetSpotByID).Methods("GET")
+	r.HandleFunc("/api/spots/{id}", UpdateSpotRating).Methods("PUT")
+	r.HandleFunc("/api/spots", CreateSpot).Methods("POST")
 
-	// Récupération du mot de passe depuis les variables d'environnement
-	pswd := ""
-
-	// Connexion à la base MySQL
-	db, err := sql.Open("mysql", "root:"+pswd+"@tcp(localhost:3306)/surfspot")
-	if err != nil {
-		log.Fatal("Erreur lors de sql.Open :", err)
-	}
-	defer db.Close()
-
-	err = db.Ping()
-	if err != nil {
-		log.Fatal("Erreur de connexion à la base :", err)
-	}
-	fmt.Println("Connexion à la base réussie")
-
-	// Exemple d'insertion
-	insert, err := db.Query("INSERT INTO `surfspot`.`spots` ( `name`, `surfBreak`, `photo`, `address`, `difficulty`, `seasonStart`, `seasonEnd`, `rating`) VALUES ('Carl', 'Point Break', 'https://example.com/pipeline.jpg', 'aaa', '5', '2025-07-01', '2025-07-02', '0');")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer insert.Close()
-
-	fmt.Println("Insertion réussie")
-
-	// Configuration du routeur
+	log.Println("🌍 Serveur en écoute sur http://localhost:8080")
+	log.Fatal(http.ListenAndServe(":8080", r))
 }
