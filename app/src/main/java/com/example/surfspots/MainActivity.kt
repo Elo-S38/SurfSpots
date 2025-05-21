@@ -15,7 +15,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // ✅ Initialise la musique uniquement une fois, quand l'activité démarre
+        // Initialise la musique uniquement une fois, quand l'activité démarre
         mediaPlayer = MediaPlayer.create(this, R.raw.surfmusic)
         mediaPlayer.isLooping = true
         mediaPlayer.start()
@@ -23,7 +23,7 @@ class MainActivity : AppCompatActivity() {
         // Bouton "Voir les spots" - ouvre SpotsActivity
         val buttonVoirSpots = findViewById<Button>(R.id.buttonVoirSpots)
         buttonVoirSpots.setOnClickListener {
-            // ✅ Stoppe et libère la musique AVANT de changer d’écran
+            //  Stoppe et libère la musique AVANT de changer d’écran
             stopMusic()
 
             // Ouvre SpotsActivity
@@ -34,7 +34,7 @@ class MainActivity : AppCompatActivity() {
         // Bouton "Ajouter un Spot" - ouvre AjoutSpotActivity
         val buttonAjouterSpot = findViewById<Button>(R.id.buttonAjoutSpot)
         buttonAjouterSpot.setOnClickListener {
-            // ✅ Stoppe et libère la musique AVANT de changer d’écran
+            //  Stoppe et libère la musique AVANT de changer d’écran
             stopMusic()
 
             // Ouvre AjoutSpotActivity
@@ -45,7 +45,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        // 🧼 Sécurité : libération finale si activité détruite (ex: app fermée)
+        //  Sécurité : libération finale si activité détruite (ex: app fermée)
         stopMusic()
     }
 

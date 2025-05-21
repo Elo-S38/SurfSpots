@@ -44,20 +44,20 @@ class SpotsActivity : AppCompatActivity() {
             finish()
         }
 
-        // 🔍 Lancer une recherche par lieu
+        //  Lancer une recherche par lieu
         searchButton.setOnClickListener {
             currentLocationFilter = searchEditText.text.toString()
             currentPage = 1
             fetchSpotsFromApi()
         }
 
-        // ⏩ Page suivante
+        //  Page suivante
         nextPageButton.setOnClickListener {
             currentPage++
             fetchSpotsFromApi()
         }
 
-        // ⏪ Page précédente
+        //  Page précédente
         prevPageButton.setOnClickListener {
             if (currentPage > 1) {
                 currentPage--
@@ -65,7 +65,7 @@ class SpotsActivity : AppCompatActivity() {
             }
         }
 
-        // 📲 Aller aux détails d’un spot
+        //  Aller aux détails d’un spot
         listView.setOnItemClickListener { _, _, position, _ ->
             val intent = Intent(this, SpotDetailActivity::class.java)
             intent.putExtra("spot_id", spots[position].id)
@@ -78,7 +78,7 @@ class SpotsActivity : AppCompatActivity() {
     private fun fetchSpotsFromApi() {
         val queue = Volley.newRequestQueue(this)
 
-        val baseUrl = "http://192.168.75.45:8080/api/spots"
+        val baseUrl = "http://  192.168.75.45:8080/api/spots"
         val locationParam = if (currentLocationFilter.isNotBlank()) "&location=${currentLocationFilter}" else ""
         val url = "$baseUrl?page=$currentPage&limit=$spotsPerPage$locationParam"
 
@@ -87,33 +87,45 @@ class SpotsActivity : AppCompatActivity() {
             url,
             null,
             { response ->
-                val dataArray = response.getJSONArray("data")
-                spots.clear()
+                //  Vérifie que la clé "data" existe et n’est pas null
+                if (!response.isNull("data")) {
+                    val dataArray = response.getJSONArray("data")
+                    spots.clear()
 
-                for (i in 0 until dataArray.length()) {
-                    val item = dataArray.getJSONObject(i)
-                    val spot = Spot(
-                        id = item.getInt("id"),
-                        name = item.optString("name", "Inconnu"),
-                        location = item.optString("address", "Adresse inconnue"),
-                        imageUrlOrPath = item.optString("photo", ""),
-                        surfBreak = item.optString("surfBreak", "N/A"),
-                        difficulty = item.optInt("difficulty", 0),
-                        seasonStart = item.optString("seasonStart", ""),
-                        seasonEnd = item.optString("seasonEnd", ""),
-                        address = item.optString("address", ""),
-                        rating = item.optInt("rating", 0)
-                    )
-                    spots.add(spot)
+                    for (i in 0 until dataArray.length()) {
+                        val item = dataArray.getJSONObject(i)
+                        val spot = Spot(
+                            id = item.getInt("id"),
+                            name = item.optString("name", "Inconnu"),
+                            location = item.optString("address", "Adresse inconnue"),
+                            imageUrlOrPath = item.optString("photo", ""),
+                            surfBreak = item.optString("surfBreak", "N/A"),
+                            difficulty = item.optInt("difficulty", 0),
+                            seasonStart = item.optString("seasonStart", ""),
+                            seasonEnd = item.optString("seasonEnd", ""),
+                            address = item.optString("address", ""),
+                            rating = item.optInt("rating", 0)
+                        )
+                        spots.add(spot)
+                    }
+
+                    if (spots.isEmpty()) {
+                        Toast.makeText(this, "Aucun spot trouvé", Toast.LENGTH_SHORT).show()
+                    }
+
+                    adapter.notifyDataSetChanged()
+                } else {
+                    Toast.makeText(this, "Aucun résultat trouvé", Toast.LENGTH_SHORT).show()
+                    spots.clear()
+                    adapter.notifyDataSetChanged()
                 }
-
-                adapter.notifyDataSetChanged()
             },
             { error ->
                 Log.e("Volley", "Erreur réseau : ${error.message}")
                 Toast.makeText(this, "Erreur réseau", Toast.LENGTH_SHORT).show()
             }
         )
+
 
         queue.add(request)
     }

@@ -10,13 +10,13 @@ import (
 	"strconv"
 
 
-	"github.com/joho/godotenv"      // 🌿 Pour charger le fichier .env
-	_ "github.com/go-sql-driver/mysql" // 🧩 Driver MySQL
-	"github.com/gorilla/mux"           // 🐵 Gestion des routes dynamiques
+	"github.com/joho/godotenv"      // Pour charger le fichier .env
+	_ "github.com/go-sql-driver/mysql" // Driver MySQL
+	"github.com/gorilla/mux"           // Gestion des routes dynamiques
 
 )
 
-// 🎯 Structure représentant un spot
+// Structure représentant un spot
 type DataSpot struct {
 	ID          int    `json:"id"`
 	Name        string `json:"name"`
@@ -31,12 +31,12 @@ type DataSpot struct {
 
 var db *sql.DB
 
-// 🔐 Connexion à la base à l'initialisation
+//  Connexion à la base à l'initialisation
 func init() {
-	fmt.Println("🔐 Chargement des variables d'environnement...")
+	fmt.Println(" Chargement des variables d'environnement...")
 	err := godotenv.Load("config.env")
 	if err != nil {
-		log.Fatal("❌ Erreur config.env :", err)
+		log.Fatal(" Erreur config.env :", err)
 	}
 
 	user := os.Getenv("DB_USER")
@@ -49,17 +49,17 @@ func init() {
 
 	db, err = sql.Open("mysql", dsn)
 	if err != nil {
-		log.Fatal("❌ Erreur sql.Open :", err)
+		log.Fatal(" Erreur sql.Open :", err)
 	}
 
 	if err = db.Ping(); err != nil {
-		log.Fatal("❌ Connexion échouée :", err)
+		log.Fatal(" Connexion échouée :", err)
 	}
 
-	fmt.Println("✅ Connexion à la base réussie")
+	fmt.Println(" Connexion à la base réussie")
 }
 
-// 📦 GET /api/spots?page=1&limit=10&location=bordeaux
+//  ex: GET /api/spots?page=1&limit=10&location=bordeaux
 func GetSpots(w http.ResponseWriter, r *http.Request) {
 	pageStr := r.URL.Query().Get("page")
 	limitStr := r.URL.Query().Get("limit")
@@ -75,7 +75,7 @@ func GetSpots(w http.ResponseWriter, r *http.Request) {
 	}
 	offset := (page - 1) * limit
 
-	// 🧠 Construction de la requête avec filtrage dynamique
+	// Construction de la requête avec filtrage dynamique
 	query := "SELECT * FROM spots WHERE 1=1"
 	params := []interface{}{}
 
@@ -113,7 +113,7 @@ func GetSpots(w http.ResponseWriter, r *http.Request) {
 }
 
   
-// 🌐 GET /api/spots/{id}
+// GET /api/spots/{id}
 
 func GetSpotByID(w http.ResponseWriter, r *http.Request) {
 	idStr := mux.Vars(r)["id"]
@@ -134,7 +134,7 @@ func GetSpotByID(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(s)
 }
 
-// 📦 PUT /api/spots/{id}
+// PUT /api/spots/{id}
 func UpdateSpotRating(w http.ResponseWriter, r *http.Request) {
 	idStr := mux.Vars(r)["id"]
 	id, err := strconv.Atoi(idStr)
@@ -160,7 +160,7 @@ func UpdateSpotRating(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// 📦 POST /api/spots
+// POST /api/spots
 func CreateSpot(w http.ResponseWriter, r *http.Request) {
 	var s DataSpot
 	if err := json.NewDecoder(r.Body).Decode(&s); err != nil {
@@ -182,18 +182,18 @@ func CreateSpot(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(s)
 }
 
-// 🚀 Démarrage du serveur
+// Démarrage du serveur
 func main() {
 	r := mux.NewRouter()
 
 
-	// 📌 Routes de l’API
+	//  Routes de l’API
 
 	r.HandleFunc("/api/spots", GetSpots).Methods("GET")
 	r.HandleFunc("/api/spots/{id}", GetSpotByID).Methods("GET")
 	r.HandleFunc("/api/spots/{id}", UpdateSpotRating).Methods("PUT")
 	r.HandleFunc("/api/spots", CreateSpot).Methods("POST")
 
-	log.Println("🌍 Serveur en écoute sur http://localhost:8080")
+	log.Println(" Serveur en écoute sur http://localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", r))
 }

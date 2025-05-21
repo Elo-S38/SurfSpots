@@ -3,7 +3,7 @@ package com.example.surfspots
 import android.os.Parcel
 import android.os.Parcelable
 
-// 🏄 Modèle représentant un spot de surf
+// Modèle représentant un spot de surf
 data class Spot(
     val id: Int,                    // Identifiant du spot
     val name: String,              // Nom du spot
@@ -14,10 +14,10 @@ data class Spot(
     val seasonStart: String,       // Début de la saison
     val seasonEnd: String,         // Fin de la saison
     val address: String,           // Adresse (dupliquée avec location parfois)
-    val rating: Int                // ✅ Note moyenne (sur 5)
+    val rating: Int                //  Note moyenne (sur 5)
 ) : Parcelable {
 
-    // 📥 Constructeur secondaire pour reconstruire un objet à partir d’un Parcel
+    // Constructeur secondaire pour reconstruire un objet à partir d’un Parcel
     constructor(parcel: Parcel) : this(
         parcel.readInt(),                     // id
         parcel.readString() ?: "",            // name
@@ -28,10 +28,10 @@ data class Spot(
         parcel.readString() ?: "",            // seasonStart
         parcel.readString() ?: "",            // seasonEnd
         parcel.readString() ?: "",            // address
-        parcel.readInt()                      // ✅ lecture de rating
+        parcel.readInt()                      //  lecture de rating
     )
 
-    // 📤 Écrit les données dans un Parcel (ordre important)
+    // Écrit les données dans un Parcel (ordre important)
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeInt(id)
         parcel.writeString(name)
@@ -42,13 +42,13 @@ data class Spot(
         parcel.writeString(seasonStart)
         parcel.writeString(seasonEnd)
         parcel.writeString(address)
-        parcel.writeInt(rating) // ✅ écriture de rating
+        parcel.writeInt(rating) //  écriture de rating
     }
 
-    // 👤 Méthode obligatoire pour Parcelable
+    //  Méthode obligatoire pour Parcelable
     override fun describeContents(): Int = 0
 
-    // 🎁 Companion object pour recréer un Spot depuis un Parcel
+    //  Companion object pour recréer un Spot depuis un Parcel
     companion object CREATOR : Parcelable.Creator<Spot> {
         override fun createFromParcel(parcel: Parcel): Spot = Spot(parcel)
         override fun newArray(size: Int): Array<Spot?> = arrayOfNulls(size)
