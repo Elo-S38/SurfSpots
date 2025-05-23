@@ -192,7 +192,7 @@ class AjoutSpotActivity : AppCompatActivity() {
             put("rating", spot.rating)
         }
 
-        val url = "http://192.168.75.45:8080/api/spots"
+        val url = "http://10.0.2.2:8080/api/spots"
 
 
 

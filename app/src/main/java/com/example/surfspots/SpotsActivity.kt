@@ -78,7 +78,7 @@ class SpotsActivity : AppCompatActivity() {
     private fun fetchSpotsFromApi() {
         val queue = Volley.newRequestQueue(this)
 
-        val baseUrl = "http://  192.168.75.45:8080/api/spots"
+        val baseUrl = "http://10.0.2.2:8080/api/spots"
         val locationParam = if (currentLocationFilter.isNotBlank()) "&location=${currentLocationFilter}" else ""
         val url = "$baseUrl?page=$currentPage&limit=$spotsPerPage$locationParam"
 

@@ -8,8 +8,6 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-
-
 	"github.com/joho/godotenv"      // Pour charger le fichier .env
 	_ "github.com/go-sql-driver/mysql" // Driver MySQL
 	"github.com/gorilla/mux"           // Gestion des routes dynamiques
@@ -51,21 +49,19 @@ func init() {
 	if err != nil {
 		log.Fatal(" Erreur sql.Open :", err)
 	}
-
 	if err = db.Ping(); err != nil {
 		log.Fatal(" Connexion échouée :", err)
 	}
-
 	fmt.Println(" Connexion à la base réussie")
 }
 
 //  ex: GET /api/spots?page=1&limit=10&location=bordeaux
 func GetSpots(w http.ResponseWriter, r *http.Request) {
-	pageStr := r.URL.Query().Get("page")
+	pageStr := r.URL.Query().Get("page") //permet de récupérer les paramètres de l’URL 
 	limitStr := r.URL.Query().Get("limit")
 	location := r.URL.Query().Get("location")
-
-	page, err := strconv.Atoi(pageStr)
+	//Valeurs par défaut et conversion
+	page, err := strconv.Atoi(pageStr) //convertit les chaînes (pageStr, limitStr) en entiers avec strconv.Atoi.
 	if err != nil || page < 1 {
 		page = 1
 	}
@@ -87,7 +83,7 @@ func GetSpots(w http.ResponseWriter, r *http.Request) {
 	query += " LIMIT ? OFFSET ?"
 	params = append(params, limit, offset)
 
-	rows, err := db.Query(query, params...)
+	rows, err := db.Query(query, params...)//Récupération des données
 	if err != nil {
 		http.Error(w, "Erreur SQL", http.StatusInternalServerError)
 		return
@@ -95,7 +91,7 @@ func GetSpots(w http.ResponseWriter, r *http.Request) {
 	defer rows.Close()
 
 	var spots []DataSpot
-	for rows.Next() {
+	for rows.Next() { //Boucle pour remplir le tableau
 		var s DataSpot
 		if err := rows.Scan(&s.ID, &s.Name, &s.SurfBreak, &s.Photo, &s.Address, &s.Difficulty, &s.SeasonStart, &s.SeasonEnd, &s.Rating); err != nil {
 			http.Error(w, "Erreur lecture", http.StatusInternalServerError)
@@ -103,7 +99,7 @@ func GetSpots(w http.ResponseWriter, r *http.Request) {
 		}
 		spots = append(spots, s)
 	}
-
+		//Réponse envoyée au front
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"page":  page,
