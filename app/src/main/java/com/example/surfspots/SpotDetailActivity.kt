@@ -58,7 +58,7 @@ class SpotDetailActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            val url = "http://192.168.75.45:8080/api/spots/$spotId"
+            val url = "http://10.0.2.2:8080/api/spots/$spotId"
 
             val jsonBody = JSONObject().put("rating", note) //  Préparation du corps JSON
 
@@ -92,7 +92,7 @@ class SpotDetailActivity : AppCompatActivity() {
 
     //  Fonction qui récupère les détails d’un spot depuis l’API
     private fun fetchSpotDetails(id: Int) {
-        val url = "http://192.168.75.45:8080/api/spots/$spotId"
+        val url = "http://10.0.2.2:8080/api/spots/$spotId"
 
         val queue = Volley.newRequestQueue(this) // 📡 File d’attente Volley
 
