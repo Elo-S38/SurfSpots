@@ -86,7 +86,7 @@ go run main.go
 
 
 ## 👩‍💻 Auteurs
-- **Mariama DAFF** – Développeuse Android & back-end Go (Projet pédagogique SurfSpots – 2025)
+- **Neelab Sadat** – Développeuse Android & back-end Go (Projet pédagogique SurfSpots – 2025)
 - **Vincent Bourgin** – Développeur Android & back-end Go (Projet pédagogique SurfSpots – 2025)
 - **Élodie Sorce** – Développeuse Android & back-end Go (Projet pédagogique SurfSpots – 2025)
 
